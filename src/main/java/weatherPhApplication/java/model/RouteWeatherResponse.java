@@ -10,9 +10,8 @@ public class RouteWeatherResponse {
     private Map<String, Object> destinationWeather;
     private String originHazard;
     private String destinationHazard;
-    private String originTravelHazard; // New field for temp-based advice
-    private String destinationTravelHazard; // New field for temp-based advice
 
+    // ADD: lat/lon for reuse everywhere
     private Double originLat;
     private Double originLon;
     private Double destinationLat;
@@ -51,7 +50,6 @@ public class RouteWeatherResponse {
         this.destinationLon = destinationLon;
     }
 
-    // Standard Getters and Setters
     public String getOrigin() { return origin; }
     public void setOrigin(String origin) { this.origin = origin; }
     public String getDestination() { return destination; }
@@ -64,10 +62,13 @@ public class RouteWeatherResponse {
     public void setOriginHazard(String originHazard) { this.originHazard = originHazard; }
     public String getDestinationHazard() { return destinationHazard; }
     public void setDestinationHazard(String destinationHazard) { this.destinationHazard = destinationHazard; }
+
+    // --- New hazard list + lat/lon getters/setters ---
     public List<String> getOriginHazards() { return originHazards; }
     public void setOriginHazards(List<String> originHazards) { this.originHazards = originHazards; }
     public List<String> getDestinationHazards() { return destinationHazards; }
     public void setDestinationHazards(List<String> destinationHazards) { this.destinationHazards = destinationHazards; }
+
     public Double getOriginLat() { return originLat; }
     public void setOriginLat(Double originLat) { this.originLat = originLat; }
     public Double getOriginLon() { return originLon; }
@@ -76,16 +77,22 @@ public class RouteWeatherResponse {
     public void setDestinationLat(Double destinationLat) { this.destinationLat = destinationLat; }
     public Double getDestinationLon() { return destinationLon; }
     public void setDestinationLon(Double destinationLon) { this.destinationLon = destinationLon; }
-    
-    // Getters and setters for new travel hazard fields
-    public String getOriginTravelHazard() { return originTravelHazard; }
-    public void setOriginTravelHazard(String originTravelHazard) { this.originTravelHazard = originTravelHazard; }
-    public String getDestinationTravelHazard() { return destinationTravelHazard; }
-    public void setDestinationTravelHazard(String destinationTravelHazard) { this.destinationTravelHazard = destinationTravelHazard; }
 
     @Override
     public String toString() {
-        return "RouteWeatherResponse{" + "origin='" + origin + '\'' + // Adjusted for brevity
+        return "RouteWeatherResponse{" +
+               "origin='" + origin + '\'' +
+               ", destination='" + destination + '\'' +
+               ", originWeather=" + originWeather +
+               ", destinationWeather=" + destinationWeather +
+               ", originHazard='" + originHazard + '\'' +
+               ", destinationHazard='" + destinationHazard + '\'' +
+               ", originHazards=" + originHazards +
+               ", destinationHazards=" + destinationHazards +
+               ", originLat=" + originLat +
+               ", originLon=" + originLon +
+               ", destinationLat=" + destinationLat +
+               ", destinationLon=" + destinationLon +
                '}';
     }
 }
