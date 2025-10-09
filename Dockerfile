@@ -1,23 +1,36 @@
-# Use an official OpenJDK runtime as a parent image
-FROM eclipse-temurin:17-jdk-jammy
+# STAGE 1: Build the application using a full JDK
+FROM eclipse-temurin:17-jdk-jammy AS builder
 
-# Set the working directory in the container
+# Set the working directory
 WORKDIR /app
 
-# Copy the Maven wrapper and pom.xml to leverage Docker cache
+# Copy the Maven wrapper and project definition files
 COPY mvnw .
 COPY .mvn .mvn
 COPY pom.xml .
 
-# Build the application and create the executable JAR file
-# Using --no-daemon to ensure the build completes within the container
+# Download dependencies to a cached layer
+RUN ./mvnw dependency:go-offline
+
+# Copy the rest of the application source code
+COPY src ./src
+
+# Build the application JAR file
 RUN ./mvnw package -DskipTests
 
-# Copy the built JAR file to the container
-# The JAR is found in the 'target' directory
-COPY target/java-0.0.1-SNAPSHOT.jar app.jar
-# Make port 8080 available to the world outside this container
+
+# STAGE 2: Create the final, lightweight production image
+FROM eclipse-temurin:17-jre-jammy
+
+# Set the working directory
+WORKDIR /app
+
+# Copy only the built JAR file from the 'builder' stage
+COPY --from=builder /app/target/*.jar app.jar
+
+# Expose the port the application runs on
 EXPOSE 8080
 
-# Define the command to run your application
-ENTRYPOINT ["java","-jar","/app/app.jar"]
+# The command to run the application
+ENTRYPOINT ["java","-jar","app.jar"]
+
