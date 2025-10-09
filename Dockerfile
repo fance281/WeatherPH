@@ -1,4 +1,4 @@
-dsa# Use an official OpenJDK runtime as a parent image
+# Use an official OpenJDK runtime as a parent image
 FROM eclipse-temurin:17-jdk-jammy
 
 # Set the working directory in the container
