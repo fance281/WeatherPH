@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>WeatherPH - About</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link th:href="@{/assets/css/styles.css}" rel="stylesheet" />
+  <script defer th:src="@{/assets/js/geoweather.js}"></script>
+  <script defer th:src="@{/assets/js/app.js}"></script>
+</head>
+<body>
+<header class="navbar">
+  <div class="container nav-content">
+    <div class="brand">
+      <span class="logo">☁</span>
+      <span class="brand-name">WeatherPH</span>
+    </div>
+    <nav class="menu">
+      <a th:href="@{/}" class="menu-link">Home</a>
+      <a th:href="@{/advisories}" class="menu-link">Advisories</a>
+      <a th:href="@{/about}" class="menu-link active">About</a>
+    </nav>
+  </div>
+</header>
+
+<main class="container">
+  <section class="hero1">
+    <div class="hero1-text">
+      <h1>About WeatherPH</h1>
+      <p>
+        <strong>WeatherPH</strong> is an advisory tool created for Filipinos who want to plan safer journeys—whether commuting, road tripping, or sending goods anywhere in the country. Our focus is hyper-local, route-based safety: get weather and hazard guidance not just by city, but for each point along your trip.
+      </p>
+    </div>
+  </section>
+
+  <section class="results" style="padding-top:0;">
+    <div class="cards">
+      <div id="about-current-weather" class="minimal-weather-widget" style="min-height: 250px; justify-content: center;">
+        Detecting your current weather...
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <h3>What WeatherPH Does</h3>
+        </div>
+        <div class="card-body">
+          <ul>
+            <li>Checks and displays current weather for your trip's starting point and destination.</li>
+            <li>Extracts potential hazards from weather data (heavy rain, storms, wind, and more).</li>
+            <li>Offers live safety tips for your journey based on latest data and advisories.</li>
+          </ul>
+          <a th:href="@{/advisories}" class="btn btn-primary" style="margin-top:12px; display:inline-block;">View Advisories</a>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <h3>Data & Technology</h3>
+        </div>
+        <div class="card-body">
+          <ul>
+            <li>OpenWeatherMap for real-time global weather data.</li>
+            <li>Nominatim (OpenStreetMap) for fast, free geocoding.</li>
+            <li>Modern Stack: Spring Boot, Thymeleaf, and plain JavaScript.</li>
+          </ul>
+          <p class="desc" style="margin-top:10px;">
+            <b>Always cross-check with government sources:</b> Local advisories are most authoritative for severe weather, road closures, or emergencies.
+          </p>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <h3>Roadmap (Upcoming Features)</h3>
+        </div>
+        <div class="card-body">
+          <ul>
+            <li>Display weather waypoints for every major stop along your route.</li>
+            <li>Visual overlays for floods, landslides, typhoon warnings from PAGASA/NOAH.</li>
+            <li>Google Places Autocomplete for better origin/destination search.</li>
+            <li>Offline-friendly mobile/PWA app, for advice even with spotty signal.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    <div class="alert alert-warning" style="margin:20px 0 0;">
+      <b>Disclaimer:</b> This tool is a supportive aid, not a replacement for official government guidance. For any severe weather event or disaster, always follow instructions from PAGASA, PHIVOLCS, NDRRMC, LTO, and your local LGU.
+    </div>
+  </section>
+</main>
+
+<footer class="footer">
+    <div class="container footer-content">
+        <div class="footer-left">
+            <span class="logo">☁</span>
+            <span>WeatherPH</span>
+        </div>
+        <div class="footer-right" style="font-size: 13px; color: #abbde7; opacity: 0.86; text-align: right;">
+            <div style="margin-bottom: 4px;">
+                <a th:href="@{/}" style="color: inherit; text-decoration: none; padding: 0 5px;">Home</a> |
+                <a th:href="@{/advisories}" style="color: inherit; text-decoration: none; padding: 0 5px;">Advisories</a> |
+                <a th:href="@{/about}" style="color: inherit; text-decoration: none; padding: 0 5px;">About</a>
+            </div>
+            <div>&copy; 2025 WeatherPH – Protecting lives, one route at a time.</div>
+        </div>
+    </div>
+</footer>
+</body>
+</html>
+

@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <title>WeatherPH Route Advisory</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link th:href="@{/assets/css/styles.css}" rel="stylesheet" />
+    <script defer th:src="@{/assets/js/geoweather.js}"></script>
+    <script defer th:src="@{/assets/js/app.js}"></script>
+    <style>
+        /* Styles for the pop-up modal */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            z-index: 1001;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.7);
+            backdrop-filter: blur(5px);
+        }
+        .modal-content {
+            background-color: #1c2541;
+            margin: 10% auto;
+            padding: 25px;
+            border: 1px solid #3a506b;
+            width: 90%;
+            max-width: 550px;
+            border-radius: 16px;
+            position: relative;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+            animation: fadeIn 0.3s ease-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.95); }
+            to { opacity: 1; transform: scale(1); }
+        }
+        .modal-header {
+            padding-bottom: 15px;
+            border-bottom: 1px solid #2a3a5e;
+            margin-bottom: 20px;
+        }
+        .modal-header h2 {
+            margin: 0;
+            color: #e6f1ff;
+            font-size: 20px;
+        }
+        .close-button {
+            color: #aaa;
+            float: right;
+            font-size: 32px;
+            line-height: 1;
+            font-weight: bold;
+            position: absolute;
+            top: 15px;
+            right: 25px;
+        }
+        .close-button:hover,
+        .close-button:focus {
+            color: #fff;
+            text-decoration: none;
+            cursor: pointer;
+        }
+        .modal-body {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        /* New styles for advisory blocks inside the modal */
+        .modal-advisory {
+            display: flex;
+            align-items: flex-start;
+            gap: 15px;
+            padding: 15px;
+            border-radius: 12px;
+            border: 1px solid;
+        }
+        .modal-advisory.warning {
+            background-color: rgba(255,183,3,0.1);
+            border-color: rgba(255,183,3,0.3);
+        }
+        .modal-advisory.info {
+            background-color: rgba(33,158,188,0.1);
+            border-color: rgba(33,158,188,0.3);
+        }
+        .modal-advisory-icon {
+            font-size: 24px;
+            margin-top: 2px;
+        }
+        .modal-advisory .advisory-label {
+            margin-top: 0;
+            margin-bottom: 4px;
+            font-size: 12px;
+        }
+        .modal-advisory p {
+            margin: 0;
+            font-size: 14px;
+            line-height: 1.6;
+            color: var(--text);
+        }
+    </style>
+</head>
+<body>
+<header class="navbar">
+    <div class="container nav-content">
+        <div class="brand">
+            <span class="logo">☁</span>
+            <span class="brand-name">WeatherPH</span>
+        </div>
+        <nav class="menu">
+            <a th:href="@{/}" class="menu-link active">Home</a>
+            <a th:href="@{/advisories}" class="menu-link">Advisories</a>
+            <a th:href="@{/about}" class="menu-link">About</a>
+        </nav>
+    </div>
+</header>
+<main class="container">
+    <section class="hero-title">
+        <h1>Philippines Route Weather & Hazards</h1>
+        <p>Plan safer trips with real-time weather insights and travel advisories.</p>
+    </section>
+    <div th:if="${formError != null}" class="alert alert-warning" style="margin-bottom: 20px;" th:text="${formError}"></div>
+    <section class="hero">
+        <div class="hero-weather">
+            <div class="minimal-weather-widget" id="about-current-weather">
+                Detecting your current weather...
+            </div>
+        </div>
+        <div class="hero-card">
+            <form th:action="@{/route}" method="post" class="route-form" id="routeForm">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="origin">Origin</label>
+                        <input required type="text" id="origin" name="origin" placeholder="e.g., city, district, landmark">
+                        <button type="button" id="use-location-btn" class="btn btn-primary" style="margin-top:8px;font-size:13px;width:100%;">Use Current Location</button>
+                    </div>
+                    <div class="form-group">
+                        <label for="destination">Destination</label>
+                        <input required type="text" id="destination" name="destination" placeholder="e.g., city, district, landmark">
+                        <div class="form-actions">
+                            <button type="submit" class="btn btn-primary">Get Advisory</button>
+                        </div>
+                    </div>
+                </div>
+            </form>
+            <div style="margin-top: 12px; font-size: 13px; color: var(--muted);">
+                <strong>Supported input types:</strong><br>
+                • Any city, municipality, or district<br>
+                • Landmarks, barangays, or major places<br>
+                <span style="font-size:11px; color: var(--info);">Case does not matter. Try alternate spellings if a place is not found.<br>
+                For an exact match with your current weather, use the <b>Use Current Location</b> button for Origin.</span>
+            </div>
+        </div>
+    </section>
+
+    <!-- Welcome Section - Now always visible -->
+    <section class="results">
+        <h2 class="section-title">Welcome to WeatherPH</h2>
+        <div class="cards">
+            <!-- How to Use Card -->
+            <div class="card">
+                <div class="card-header">
+                    <h3>How to Use</h3>
+                </div>
+                <div class="card-body">
+                    <p>Getting a route advisory is simple:</p>
+                    <ol style="padding-left: 20px; margin: 0; font-size: 14px;">
+                        <li style="margin-bottom: 5px;">Enter your starting location in the <strong>Origin</strong> field.</li>
+                        <li style="margin-bottom: 5px;">Enter your destination in the <strong>Destination</strong> field.</li>
+                        <li>Click "Get Advisory" to see real-time weather and hazards.</li>
+                    </ol>
+                    <p style="font-size: 13px; color: var(--muted); margin-top: 10px; margin-bottom: 0;">For best results, use the "Use Current Location" button for your origin.</p>
+                </div>
+            </div>
+
+            <!-- What You'll Get Card -->
+            <div class="card">
+                <div class="card-header">
+                    <h3>What You'll Get</h3>
+                </div>
+                <div class="card-body">
+                    <p>We provide crucial information for your trip, including:</p>
+                    <ul style="padding-left: 20px; margin: 0; font-size: 14px;">
+                        <li style="margin-bottom: 5px;">Current weather conditions at origin and destination.</li>
+                        <li style="margin-bottom: 5px;">Custom travel advisories based on temperature and weather.</li>
+                        <li>Official PAGASA advisories for the region.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        
+        <!-- General Safety Tip -->
+        <div class="card" style="margin-top: 20px;">
+            <div class="card-header">
+                <h3>General Travel Safety Tip</h3>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-info" style="margin: 0;">
+                    <strong>Always check conditions before you travel.</strong> In the Philippines, weather can change rapidly. A quick check before you leave can help you avoid unexpected floods, heavy traffic due to rain, or other weather-related delays. Stay safe!
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Advisory Results Section - Shows only when a search has been made -->
+    <section th:if="${response != null}" class="results" id="resultsSection">
+        <h2 class="section-title">Advisory Results</h2>
+        <div class="cards">
+            <!-- Origin Card -->
+            <div class="card">
+                <div class="card-header" style="display: flex; align-items: center; gap: 12px;">
+                    <span style="font-size: 24px;">📍</span>
+                    <div>
+                        <h3 style="margin: 0; font-size: 18px; color: var(--text);" th:text="${response.origin}">Location Name</h3>
+                        <span style="font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px;">Origin</span>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div th:if="${response.originWeather != null and response.originWeather['weather'] != null and response.originWeather['main'] != null and !#lists.isEmpty(response.originWeather['weather'])}">
+                        <div class="weather-row" style="gap:10px;">
+                            <img th:if="${response.originWeather['weather'][0]['icon'] != null}"
+                                 th:src="'https://openweathermap.org/img/wn/' + ${response.originWeather['weather'][0]['icon']} + '@2x.png'"
+                                 alt="Weather icon"
+                                 style="vertical-align:middle; width:48px; height:48px;" />
+                            <div class="weather-pill" th:text="${#strings.capitalize(response.originWeather['weather'][0]['description'])}">Weather</div>
+                            <div class="temp" th:text="${response.originWeather['main']['temp'] + '°C'}">--</div>
+                        </div>
+                        <p class="desc" th:text="${#strings.capitalize(response.originWeather['weather'][0]['main'])}"></p>
+                        <div class="metrics">
+                            <div class="metric">
+                                <span>Humidity</span>
+                                <strong th:text="${response.originWeather['main']['humidity'] + '%'}">--</strong>
+                            </div>
+                            <div class="metric">
+                                <span>Wind</span>
+                                <strong th:text="${response.originWeather['wind']['speed'] + ' m/s'}">--</strong>
+                            </div>
+                            <div class="metric">
+                                <span>Visibility</span>
+                                <strong th:text="${(response.originWeather['visibility'] / 1000) + ' km'}">--</strong>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Error Display -->
+                    <div th:if="${response.originWeather != null and response.originWeather['error'] != null}">
+                        <div class="alert alert-warning" th:text="${response.originWeather['error']}">Error</div>
+                    </div>
+                    <!-- View Advisory Button -->
+                    <div style="margin-top: 15px;">
+                        <button type="button" class="btn btn-primary view-advisory-btn" style="width: 100%;"
+                                th:attr="data-location='Advisories for ' + ${response.origin},
+                                         data-hazard=${originHazard},
+                                         data-travel-hazard=${originTravelHazard}">
+                            View Advisories
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <!-- Destination Card -->
+            <div class="card">
+                 <div class="card-header" style="display: flex; align-items: center; gap: 12px;">
+                    <span style="font-size: 24px;">📍</span>
+                    <div>
+                        <h3 style="margin: 0; font-size: 18px; color: var(--text);" th:text="${response.destination}">Location Name</h3>
+                        <span style="font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px;">Destination</span>
+                    </div>
+                </div>
+                <div class="card-body">
+                     <div th:if="${response.destinationWeather != null and response.destinationWeather['weather'] != null and response.destinationWeather['main'] != null and !#lists.isEmpty(response.destinationWeather['weather'])}">
+                        <div class="weather-row" style="gap:10px;">
+                            <img th:if="${response.destinationWeather['weather'][0]['icon'] != null}"
+                                 th:src="'https://openweathermap.org/img/wn/' + ${response.destinationWeather['weather'][0]['icon']} + '@2x.png'"
+                                 alt="Weather icon"
+                                 style="vertical-align:middle; width:48px; height:48px;" />
+                            <div class="weather-pill" th:text="${#strings.capitalize(response.destinationWeather['weather'][0]['description'])}">Weather</div>
+                            <div class="temp" th:text="${response.destinationWeather['main']['temp'] + '°C'}">--</div>
+                        </div>
+                        <p class="desc" th:text="${#strings.capitalize(response.destinationWeather['weather'][0]['main'])}"></p>
+                        <div class="metrics">
+                            <div class="metric">
+                                <span>Humidity</span>
+                                <strong th:text="${response.destinationWeather['main']['humidity'] + '%'}">--</strong>
+                            </div>
+                            <div class="metric">
+                                <span>Wind</span>
+                                <strong th:text="${response.destinationWeather['wind']['speed'] + ' m/s'}">--</strong>
+                            </div>
+                            <div class="metric">
+                                <span>Visibility</span>
+                                <strong th:text="${(response.destinationWeather['visibility'] / 1000) + ' km'}">--</strong>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Error Display -->
+                    <div th:if="${response.destinationWeather != null and response.destinationWeather['error'] != null}">
+                        <div class="alert alert-warning" th:text="${response.destinationWeather['error']}">Error</div>
+                    </div>
+                    <!-- View Advisory Button -->
+                    <div style="margin-top: 15px;">
+                         <button type="button" class="btn btn-primary view-advisory-btn" style="width: 100%;"
+                                th:attr="data-location='Advisories for ' + ${response.destination},
+                                         data-hazard=${destinationHazard},
+                                         data-travel-hazard=${destinationTravelHazard}">
+                            View Advisories
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- OFFICIAL PAGASA ADVISORIES -->
+    <section th:if="${pagasaAdvisories != null and !pagasaAdvisories.isEmpty()}" style="padding-top: 20px;">
+        <h2 class="section-title">Official PAGASA Advisories</h2>
+        <div class="card">
+            <div class="card-body">
+                <div class="alert alert-info" style="max-height: 200px; overflow-y: auto;">
+                    <ul style="padding-left: 20px; margin: 0;">
+                        <li th:each="advisory : ${pagasaAdvisories}" th:text="${advisory}" style="margin-bottom: 10px;"></li>
+                    </ul>
+                </div>
+                <p style="font-size: 12px; color: var(--muted); text-align: center; margin-top: 10px; margin-bottom: 0;">
+                    Advisories are sourced directly from the official PAGASA website.
+                </p>
+            </div>
+        </div>
+    </section>
+
+</main>
+
+<!-- The Modal -->
+<div id="advisoryModal" class="modal-overlay">
+  <div class="modal-content">
+    <div class="modal-header">
+        <h2 id="modalTitle">Advisory Details</h2>
+        <span class="close-button">&times;</span>
+    </div>
+    <div class="modal-body" id="modalBody">
+      <!-- Content will be injected by JavaScript -->
+    </div>
+  </div>
+</div>
+
+
+<footer class="footer">
+    <div class="container footer-content">
+        <div class="footer-left">
+            <span class="logo">☁</span>
+            <span>WeatherPH</span>
+        </div>
+        <div class="footer-right" style="font-size: 13px; color: #abbde7; opacity: 0.86; text-align: right;">
+            <div style="margin-bottom: 4px;">
+                <a th:href="@{/}" style="color: inherit; text-decoration: none; padding: 0 5px;">Home</a> |
+                <a th:href="@{/advisories}" style="color: inherit; text-decoration: none; padding: 0 5px;">Advisories</a> |
+                <a th:href="@{/about}" style="color: inherit; text-decoration: none; padding: 0 5px;">About</a>
+            </div>
+            <div>&copy; 2025 WeatherPH – Protecting lives, one route at a time.</div>
+        </div>
+    </div>
+</footer>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        // This script handles the "Fetching..." state for the main advisory button.
+        const form = document.getElementById('routeForm');
+        if (form) {
+            form.addEventListener('submit', () => {
+                const btn = form.querySelector('button[type="submit"]');
+                if (btn) {
+                    btn.disabled = true;
+                    btn.textContent = 'Fetching...';
+                }
+            });
+        }
+
+        // This script will auto-scroll to the results section if it exists on page load.
+        const resultsSection = document.getElementById('resultsSection');
+        if (resultsSection) {
+            setTimeout(() => {
+                resultsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }, 100);
+        }
+        
+        // Modal functionality
+        const modal = document.getElementById("advisoryModal");
+        const modalTitle = document.getElementById("modalTitle");
+        const modalBody = document.getElementById("modalBody");
+        const closeBtn = document.querySelector(".close-button");
+
+        const openModal = (location, weatherHazard, travelHazard) => {
+            modalTitle.textContent = location;
+            let bodyHtml = '';
+            
+            if (weatherHazard && weatherHazard !== 'null') {
+                bodyHtml += `
+                    <div class="modal-advisory warning">
+                        <span class="modal-advisory-icon">⚠️</span>
+                        <div>
+                            <div class="advisory-label">Weather Hazard</div>
+                            <p>${weatherHazard}</p>
+                        </div>
+                    </div>`;
+            }
+            if (travelHazard && travelHazard !== 'null') {
+                 bodyHtml += `
+                    <div class="modal-advisory info">
+                        <span class="modal-advisory-icon">🧭</span>
+                        <div>
+                            <div class="advisory-label travel">Travel Advisory</div>
+                            <p>${travelHazard}</p>
+                        </div>
+                    </div>`;
+            }
+            
+            if (!bodyHtml) {
+                bodyHtml = '<p>No specific advisories to show for this location at the moment.</p>';
+            }
+
+            modalBody.innerHTML = bodyHtml;
+            modal.style.display = "block";
+        }
+
+        const closeModal = () => {
+            modal.style.display = "none";
+        }
+
+        // *** FIX: Use Event Delegation for modal buttons ***
+        document.addEventListener('click', function(e) {
+            if (e.target && e.target.classList.contains('view-advisory-btn')) {
+                const location = e.target.dataset.location;
+                const hazard = e.target.dataset.hazard;
+                const travelHazard = e.target.dataset.travelHazard;
+                openModal(location, hazard, travelHazard);
+            }
+        });
+
+        closeBtn.onclick = closeModal;
+        
+        window.onclick = (event) => {
+            if (event.target == modal) {
+                closeModal();
+            }
+        }
+    });
+</script>
+
+</body>
+</html>
+

@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>WeatherPH - Advisories</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link th:href="@{/assets/css/styles.css}" rel="stylesheet" />
+</head>
+<body>
+<header class="navbar">
+  <div class="container nav-content">
+    <div class="brand">
+      <span class="logo">☁</span>
+      <span class="brand-name">WeatherPH</span>
+    </div>
+    <nav class="menu">
+      <a th:href="@{/}" class="menu-link">Home</a>
+      <a th:href="@{/advisories}" class="menu-link active">Advisories</a>
+      <a th:href="@{/about}" class="menu-link">About</a>
+    </nav>
+  </div>
+</header>
+
+<main class="container">
+  <section class="hero1">
+    <div class="hero1-text">
+      <h1>Weather & Road Hazard Advisories</h1>
+      <p>
+        Travel in the Philippines means dealing with quickly-changing weather and unpredictable road conditions.
+        Intense rain and typhoons can flood streets in minutes. Landslides, falling debris, or accidents can create new hazards during storms. Extreme heat may cause vehicle problems and impact health. <br>
+        <p></p>
+        Consult this page before every trip—it collects proven safety tips to reduce risk from weather and road situations. 
+        Always use government sources like PAGASA, DPWH, MMDA, and your LGU for real-time warnings, and adapt your route and plans as needed. 
+        <p></p>
+        <strong>Your safety depends on staying alert to local advisories, road closures, and the evolving conditions around you.</strong>
+      
+    </div>
+  </section>
+  <section class="results">
+    <h2 class="section-title">Current Safety Tips</h2>
+    <div class="cards">
+      <!-- WEATHER HAZARDS -->
+      <div class="card">
+        <div class="card-header">
+          <h3>Heavy Rain / Flooding</h3>
+        </div>
+        <div class="card-body">
+          <ul>
+            <li>Check PAGASA and LGU alerts before travel.</li>
+            <li>Avoid flood-prone, low-lying roads and underpasses.</li>
+            <li>Do not attempt to cross flooded streets—Turn Around, Don't Drown.</li>
+            <li>Bring emergency supplies in case of sudden heavy rain.</li>
+          </ul>
+          <div class="alert alert-warning">⚠️ Monitor real-time weather updates and advisories.</div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header">
+          <h3>Strong Winds / Typhoon</h3>
+        </div>
+        <div class="card-body">
+          <ul>
+            <li>Secure outdoor belongings that could be blown away.</li>
+            <li>Avoid travel during active typhoon/bagyo warnings.</li>
+            <li>Stay off coastal roads during storm surge advisories.</li>
+            <li>Keep tuned to PAGASA bulletins in your area.</li>
+          </ul>
+          <div class="alert alert-info">🌀 Follow storm bulletins and LGU road closure notices.</div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header">
+          <h3>Extreme Heat</h3>
+        </div>
+        <div class="card-body">
+          <ul>
+            <li>Limit outdoor travel midday; hydrate frequently.</li>
+            <li>Check temperature/heat index before heading out.</li>
+            <li>Never leave pets, kids, or elders in vehicles—risk of heatstroke.</li>
+          </ul>
+        </div>
+      </div>
+      <!-- ROAD HAZARDS -->
+      <div class="card">
+        <div class="card-header">
+          <h3>Road Hazards & Travel Safety</h3>
+        </div>
+        <div class="card-body">
+          <ul>
+            <li>Check for road closures, flood, landslide or accident advisories before departing.</li>
+            <li>Use alternate routes if hazards are reported.</li>
+            <li>Maintain safe speed and distance, especially in hazardous weather.</li>
+            <li>Report road problems/obstructions to authorities or LGU hotlines.</li>
+          </ul>
+          <div class="alert alert-warning">⚠️ Road hazards can emerge quickly during severe weather. Stay flexible and cautious.</div>
+        </div>
+      </div>
+    </div>
+    <p class="disclaimer" style="margin-top:12px;">
+      Note: Always consult PAGASA, DPWH, MMDA, and your LGU for official road and weather bulletins.
+      <br>
+      This advisory is for general preparedness—always follow real-time updates.
+    </p>
+  </section>
+</main>
+
+<footer class="footer">
+    <div class="container footer-content">
+        <div class="footer-left">
+            <span class="logo">☁</span>
+            <span>WeatherPH</span>
+        </div>
+        <div class="footer-right" style="font-size: 13px; color: #abbde7; opacity: 0.86; text-align: right;">
+            <div style="margin-bottom: 4px;">
+                <a th:href="@{/}" style="color: inherit; text-decoration: none; padding: 0 5px;">Home</a> |
+                <a th:href="@{/advisories}" style="color: inherit; text-decoration: none; padding: 0 5px;">Advisories</a> |
+                <a th:href="@{/about}" style="color: inherit; text-decoration: none; padding: 0 5px;">About</a>
+            </div>
+            <div>&copy; 2025 WeatherPH – Protecting lives, one route at a time.</div>
+        </div>
+    </div>
+</footer>
+</body>
+</html>
