@@ -9,6 +9,9 @@ COPY mvnw .
 COPY .mvn .mvn
 COPY pom.xml .
 
+# *** FIX: Add execute permissions to the Maven Wrapper ***
+RUN chmod +x mvnw
+
 # Download dependencies to a cached layer
 RUN ./mvnw dependency:go-offline
 
@@ -33,4 +36,3 @@ EXPOSE 8080
 
 # The command to run the application
 ENTRYPOINT ["java","-jar","app.jar"]
-
