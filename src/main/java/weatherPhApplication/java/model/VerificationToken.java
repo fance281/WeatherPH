@@ -10,7 +10,7 @@ public class VerificationToken {
     private static final int EXPIRATION = 60 * 24; // 24 hours
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY) // FIX: Changed from AUTO to IDENTITY
     private Long id;
 
     private String token;
@@ -68,4 +68,3 @@ public class VerificationToken {
         this.expiryDate = expiryDate;
     }
 }
-

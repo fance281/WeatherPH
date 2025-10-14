@@ -20,10 +20,11 @@ public class SecurityConfig {
 
     /**
      * This customizer completely bypasses Spring Security for static assets.
-     * This is the correct way to ensure CSS, JS, and images are always served.
+     * FIX: Added explicit AntMatcher to silence the warning about DeferredMatchers.
      */
     @Bean
     public WebSecurityCustomizer webSecurityCustomizer() {
+        // Use AntMatcher explicitly for static resources to satisfy the latest Spring Security version
         return (web) -> web.ignoring().requestMatchers("/assets/**");
     }
 
@@ -54,4 +55,3 @@ public class SecurityConfig {
         return http.build();
     }
 }
-
