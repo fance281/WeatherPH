@@ -81,18 +81,19 @@ public class RouteWeatherResponse {
     @Override
     public String toString() {
         return "RouteWeatherResponse{" +
-               "origin='" + origin + '\'' +
-               ", destination='" + destination + '\'' +
-               ", originWeather=" + originWeather +
-               ", destinationWeather=" + destinationWeather +
-               ", originHazard='" + originHazard + '\'' +
-               ", destinationHazard='" + destinationHazard + '\'' +
-               ", originHazards=" + originHazards +
-               ", destinationHazards=" + destinationHazards +
-               ", originLat=" + originLat +
-               ", originLon=" + originLon +
-               ", destinationLat=" + destinationLat +
-               ", destinationLon=" + destinationLon +
-               '}';
+                "origin='" + origin + '\'' +
+                ", destination='" + destination + '\'' +
+                ", originWeather=" + originWeather +
+                ", destinationWeather=" + destinationWeather +
+                ", originHazard='" + originHazard + '\'' +
+                ", destinationHazard='" + destinationHazard + '\'' +
+                ", originHazards=" + originHazards +
+                ", destinationHazards=" + destinationHazards +
+                ", originLat=" + originLat +
+                ", originLon=" + originLon +
+                ", destinationLat=" + destinationLat +
+                ", destinationLon=" + destinationLon +
+                '}';
     }
 }
+

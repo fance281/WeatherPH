@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <title>Login - WeatherPH</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link th:href="@{/assets/css/styles.css}" rel="stylesheet" />
+</head>
+<body class="auth-body">
+
+<div class="background-icons">
+    <div class="icon">☀️</div>
+    <div class="icon">☁️</div>
+    <div class="icon">🌧️</div>
+    <div class="icon">⚡</div>
+    <div class="icon">💨</div>
+    <div class="icon">⛅</div>
+</div>
+
+<main class="auth-container">
+    <div class="auth-card">
+        <div class="auth-header">
+            <div class="logo">☁️</div>
+            <h1>Welcome Back</h1>
+            <p>Sign in to continue to WeatherPH</p>
+        </div>
+
+        <div th:if="${message}" class="alert alert-info" style="margin-bottom: 20px;" th:text="${message}"></div>
+        <div th:if="${error}" class="alert alert-warning" style="margin-bottom: 20px;" th:text="${error}"></div>
+        <div th:if="${param.error}" class="alert alert-warning" style="margin-bottom: 20px;">Invalid email or password.</div>
+
+        <form th:action="@{/login}" method="post" class="auth-form">
+            <div class="form-group">
+                <label for="username">Email</label>
+                <input required type="email" id="username" name="username" placeholder="Enter your email address">
+            </div>
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input required type="password" id="password" name="password" placeholder="Enter your password">
+            </div>
+            <div class="auth-options">
+                <a th:href="@{/forgot-password}">Forgot Password?</a>
+            </div>
+            <button type="submit" class="btn btn-primary">Sign In</button>
+        </form>
+
+        <div class="auth-footer">
+            <span>Don't have an account?</span>
+            <a th:href="@{/register}">Register here</a>
+        </div>
+    </div>
+</main>
+
+<!-- Modals -->
+<div id="verification-modal" class="modal-overlay" th:if="${verification_sent}">
+    <div class="modal-content">
+        <div class="modal-header" style="text-align: center; border-bottom: none;">
+             <div class="success-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="64px" height="64px"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
+            </div>
+            <h2>Verification Email Sent</h2>
+        </div>
+        <div class="modal-body" style="text-align: center;">
+            <p>We've sent a verification link to your email address. Please check your inbox (and spam folder) to complete your registration.</p>
+            <div style="text-align: center; margin-top: 20px;">
+                <button id="close-verification-btn" class="btn btn-primary">Okay</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="password-reset-modal" class="modal-overlay" th:if="${password_reset_success}">
+    <div class="modal-content">
+        <div class="modal-header" style="text-align: center; border-bottom: none;">
+             <div class="success-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="64px" height="64px"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
+            </div>
+            <h2>Password Reset Successful</h2>
+        </div>
+        <div class="modal-body" style="text-align: center;">
+            <p>Your password has been changed successfully. You can now log in with your new password.</p>
+            <div style="text-align: center; margin-top: 20px;">
+                <button id="close-reset-btn" class="btn btn-primary">Okay</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="logout-success-modal" class="modal-overlay" th:if="${param.logoutSuccess}">
+    <div class="modal-content">
+        <div class="modal-header" style="text-align: center; border-bottom: none;">
+             <div class="success-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" fill="currentColor" class="bi bi-box-arrow-left" viewBox="0 0 16 16" style="color: var(--info);">
+                  <path fill-rule="evenodd" d="M6 12.5a.5.5 0 0 0 .5.5h8a.5.5 0 0 0 .5-.5v-9a.5.5 0 0 0-.5-.5h-8a.5.5 0 0 0-.5.5v2a.5.5 0 0 1-1 0v-2A1.5 1.5 0 0 1 6.5 2h8A1.5 1.5 0 0 1 16 3.5v9a1.5 1.5 0 0 1-1.5 1.5h-8A1.5 1.5 0 0 1 5 12.5v-2a.5.5 0 0 1 1 0v2z"/>
+                  <path fill-rule="evenodd" d="M.146 8.354a.5.5 0 0 1 0-.708l3-3a.5.5 0 1 1 .708.708L1.707 7.5H10.5a.5.5 0 0 1 0 1H1.707l2.147 2.146a.5.5 0 0 1-.708.708l-3-3z"/>
+                </svg>
+            </div>
+            <h2>Logout Successful</h2>
+        </div>
+        <div class="modal-body" style="text-align: center;">
+            <p>You have been logged out successfully.</p>
+            <div style="text-align: center; margin-top: 20px;">
+                <button id="close-logout-btn" class="btn btn-primary">Okay</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    function setupModal(modalId, closeBtnId, urlParam) {
+        const modal = document.getElementById(modalId);
+        if (modal) {
+            modal.style.display = 'flex';
+            const closeBtn = document.getElementById(closeBtnId);
+            
+            const closeModal = () => { 
+                modal.style.display = 'none'; 
+                if (urlParam) {
+                    const url = new URL(window.location);
+                    if (url.searchParams.has(urlParam)) {
+                        url.searchParams.delete(urlParam);
+                        window.history.replaceState({}, '', url);
+                    }
+                }
+            };
+
+            if(closeBtn) closeBtn.addEventListener('click', closeModal);
+            window.addEventListener('click', (event) => {
+                if (event.target === modal) closeModal();
+            });
+        }
+    }
+    setupModal('verification-modal', 'close-verification-btn');
+    setupModal('password-reset-modal', 'close-reset-btn');
+    setupModal('logout-success-modal', 'close-logout-btn', 'logoutSuccess');
+});
+</script>
+
+</body>
+</html>
+

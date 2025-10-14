@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <title>Register - WeatherPH</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link th:href="@{/assets/css/styles.css}" rel="stylesheet" />
+</head>
+<body class="auth-body">
+
+<div class="background-icons">
+    <div class="icon">☀️</div>
+    <div class="icon">☁️</div>
+    <div class="icon">🌧️</div>
+    <div class="icon">⚡</div>
+    <div class="icon">💨</div>
+    <div class="icon">⛅</div>
+</div>
+
+<main class="auth-container">
+    <div class="auth-card">
+        <div class="auth-header">
+            <div class="logo">☁️</div>
+            <h1>Create Account</h1>
+            <p>Join to get personalized advisories</p>
+        </div>
+
+        <form th:action="@{/register}" th:object="${user}" method="post" class="auth-form" novalidate>
+            <div class="form-group">
+                <label for="firstName">First Name</label>
+                <input type="text" id="firstName" th:field="*{firstName}" placeholder="Enter your first name">
+                <small class="error-text" th:if="${#fields.hasErrors('firstName')}" th:errors="*{firstName}"></small>
+            </div>
+            <div class="form-group">
+                <label for="lastName">Last Name</label>
+                <input type="text" id="lastName" th:field="*{lastName}" placeholder="Enter your last name">
+                <small class="error-text" th:if="${#fields.hasErrors('lastName')}" th:errors="*{lastName}"></small>
+            </div>
+            <div class="form-group">
+                <label for="email">Email</label>
+                <input type="email" id="email" th:field="*{email}" placeholder="Enter your email address">
+                <small class="error-text" th:if="${#fields.hasErrors('email')}" th:errors="*{email}"></small>
+            </div>
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input type="password" id="password" th:field="*{password}" placeholder="Create a password (min. 8 characters)">
+                <small class="error-text" th:if="${#fields.hasErrors('password')}" th:errors="*{password}"></small>
+            </div>
+
+            <div class="privacy-agreement">
+                <input type="checkbox" id="privacy-agree" required>
+                <label for="privacy-agree">
+                    I agree to the <a href="#" id="privacy-link">Data Privacy Policy</a>
+                </label>
+            </div>
+
+            <button type="submit" id="register-btn" class="btn btn-primary" disabled>
+                <svg class="loader" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-6.219-8.56"></path></svg>
+                <span class="btn-text">Create Account</span>
+            </button>
+        </form>
+
+        <div class="auth-footer">
+            <span>Already have an account?</span>
+            <a th:href="@{/login}">Login here</a>
+        </div>
+    </div>
+</main>
+
+<!-- Data Privacy Modal -->
+<div id="privacy-modal" class="modal-overlay">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>Data Privacy Policy</h2>
+            <span class="close-button">&times;</span>
+        </div>
+        <div class="modal-body" id="privacy-modal-body">
+            <h4>1. Introduction</h4>
+            <p>Your privacy is important to us. This policy explains what personal data WeatherPH collects from you and how we use it. By using our services, you agree to the collection and use of information in accordance with this policy.</p>
+            
+            <h4>2. Personal Data We Collect</h4>
+            <p>WeatherPH collects data to operate effectively and provide you the best experiences with our services. You provide some of this data directly, such as when you create a WeatherPH account. The personal information we collect includes:</p>
+            <ul>
+                <li><strong>First Name and Last Name:</strong> To personalize your experience.</li>
+                <li><strong>Email Address:</strong> To create and secure your account, and for communication purposes such as sending verification links and important notices.</li>
+            </ul>
+
+            <h4>3. How We Use Personal Data</h4>
+            <p>We use the data we collect to provide and improve the services we offer. This includes:</p>
+            <ul>
+                <li>Providing our core services, including route-based weather advisories.</li>
+                <li>Securing and maintaining your account.</li>
+                <li>Communicating with you about your account and our services.</li>
+            </ul>
+            <p><strong>We do not share your personal data with third parties for marketing purposes.</strong></p>
+
+            <h4>4. Data Security</h4>
+            <p>We are committed to protecting the security of your personal data. We use a variety of security technologies and procedures to help protect your personal data from unauthorized access, use, or disclosure.</p>
+            <p>By clicking "I Agree", you acknowledge that you have read, understood, and agree to be bound by this Data Privacy Policy.</p>
+
+            <div style="text-align: center; margin-top: 20px;">
+                <button id="agree-btn" class="btn btn-primary" disabled>I Agree</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const privacyModal = document.getElementById('privacy-modal');
+        const privacyModalBody = document.getElementById('privacy-modal-body');
+        const privacyLink = document.getElementById('privacy-link');
+        const closeButton = privacyModal.querySelector('.close-button');
+        const agreeButton = document.getElementById('agree-btn');
+        const privacyCheckbox = document.getElementById('privacy-agree');
+        const registerButton = document.getElementById('register-btn');
+
+        privacyLink.addEventListener('click', (e) => {
+            e.preventDefault();
+            privacyModal.style.display = 'flex'; // Use flex for centering
+        });
+
+        privacyModalBody.addEventListener('scroll', () => {
+            const isScrolledToBottom = Math.abs(privacyModalBody.scrollHeight - privacyModalBody.clientHeight - privacyModalBody.scrollTop) < 1;
+            agreeButton.disabled = !isScrolledToBottom;
+        });
+
+        const closeModal = () => {
+            privacyModal.style.display = 'none';
+        };
+
+        if (closeButton) {
+            closeButton.addEventListener('click', closeModal);
+        }
+        
+        window.addEventListener('click', (event) => {
+            if (event.target === privacyModal) {
+                closeModal();
+            }
+        });
+
+        agreeButton.addEventListener('click', () => {
+            privacyCheckbox.checked = true;
+            privacyCheckbox.dispatchEvent(new Event('change'));
+            closeModal();
+        });
+
+        privacyCheckbox.addEventListener('change', () => {
+            registerButton.disabled = !privacyCheckbox.checked;
+        });
+
+        const registerForm = document.querySelector('.auth-form');
+        if (registerForm && registerButton) {
+            registerForm.addEventListener('submit', (e) => {
+                // Do not prevent default, let the form submit.
+                // Check validity before changing the button state.
+                if (!registerForm.checkValidity()) {
+                    return;
+                }
+                registerButton.classList.add('loading');
+                registerButton.disabled = true;
+                const btnTextSpan = registerButton.querySelector('.btn-text');
+                if (btnTextSpan) {
+                    btnTextSpan.textContent = 'Sending Verification...';
+                }
+            });
+        }
+    });
+</script>
+
+</body>
+</html>
+

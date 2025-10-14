@@ -1,10 +1,9 @@
 package weatherPhApplication.java.controller;
 
 import weatherPhApplication.java.model.RouteWeatherResponse;
-import weatherPhApplication.java.service.PagasaAdvisoryService;
-
-import org.springframework.beans.factory.annotation.Autowired;
+import weatherPhApplication.java.security.CustomUserDetails;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.stereotype.Controller;
@@ -17,30 +16,44 @@ public class RouteController {
     @Value("${app.openweather.key}")
     private String openWeatherApiKey;
 
-    @Autowired
-    private PagasaAdvisoryService pagasaAdvisoryService;
-
-    @GetMapping("/")
-    public String index(Model model) {
-        model.addAttribute("response", null);
-        model.addAttribute("formError", null);
-        model.addAttribute("pagasaAdvisories", pagasaAdvisoryService.fetchLatestAdvisories());
-        return "index";
+    // Helper method to add user details to the model
+    private void addUserDetailsToModel(Model model, CustomUserDetails userDetails) {
+        if (userDetails != null) {
+            model.addAttribute("userFullName", userDetails.getFirstName() + " " + userDetails.getLastName());
+            model.addAttribute("userInitial", userDetails.getFirstName().substring(0, 1).toUpperCase());
+        }
     }
 
+    @GetMapping("/")
+    public String index(Model model, @AuthenticationPrincipal CustomUserDetails userDetails) {
+        if (userDetails == null) {
+            // If user is not authenticated, show the landing page.
+            return "landing";
+        }
+        
+        // If user is authenticated, show the main application page.
+        addUserDetailsToModel(model, userDetails);
+        model.addAttribute("response", null);
+        model.addAttribute("formError", null);
+        model.addAttribute("currentPage", "home");
+        return "index";
+    }
     @PostMapping("/route")
     public String getRouteAdvisory(
             @RequestParam String origin,
             @RequestParam String destination,
-            Model model) {
+            Model model,
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
+        
+        addUserDetailsToModel(model, userDetails);
+        model.addAttribute("currentPage", "home");
 
         Map<String, Double> originCoords = geocode(origin);
         Map<String, Double> destCoords = geocode(destination);
 
         if (originCoords == null || destCoords == null) {
-            model.addAttribute("formError", "Could not locate one or both places.");
+            model.addAttribute("formError", "Could not locate one or both places. Please try a more specific location name.");
             model.addAttribute("response", null);
-            model.addAttribute("pagasaAdvisories", pagasaAdvisoryService.fetchLatestAdvisories());
             return "index";
         }
 
@@ -49,21 +62,13 @@ public class RouteController {
 
         Map<String, String> originAdvisories = splitWeatherAndTempAdvisory(originWeather);
         Map<String, String> destAdvisories   = splitWeatherAndTempAdvisory(destWeather);
+        
+        RouteWeatherResponse response = new RouteWeatherResponse();
+        response.setOrigin(origin);
+        response.setDestination(destination);
+        response.setOriginWeather(originWeather);
+        response.setDestinationWeather(destWeather);
 
-        RouteWeatherResponse response = new RouteWeatherResponse(
-                origin,
-                destination,
-                originWeather,
-                destWeather,
-                originAdvisories.get("weather"),
-                destAdvisories.get("weather"),
-                new ArrayList<>(), // Road hazards are removed
-                new ArrayList<>(), // Road hazards are removed
-                originCoords.get("lat"),
-                originCoords.get("lon"),
-                destCoords.get("lat"),
-                destCoords.get("lon")
-        );
 
         model.addAttribute("response", response);
         model.addAttribute("formError", null);
@@ -71,15 +76,13 @@ public class RouteController {
         model.addAttribute("originTravelHazard", originAdvisories.get("temp"));
         model.addAttribute("destinationHazard", destAdvisories.get("weather"));
         model.addAttribute("destinationTravelHazard", destAdvisories.get("temp"));
-        model.addAttribute("pagasaAdvisories", pagasaAdvisoryService.fetchLatestAdvisories());
         return "index";
     }
 
     private Map<String, String> splitWeatherAndTempAdvisory(Map<String, Object> weather) {
-        String weatherAdvice = null;
+        String weatherAdvice = "Weather data is currently unavailable."; // Default message
         String tempAdvice = null;
         if (weather == null || weather.containsKey("error")) {
-            weatherAdvice = "No live weather data. Please check your connection or try again later.";
             return Map.of("weather", weatherAdvice, "temp", tempAdvice);
         }
         String mainCond = "", description = "";
@@ -101,7 +104,6 @@ public class RouteController {
             }
         }
 
-        // --- NEW DESCRIPTIONS ---
         if (description.equals("overcast clouds")) {
             weatherAdvice = "☁️ Overcast Skies: Visibility may be reduced. Ensure your vehicle's headlights are on for safety.";
         } else if (description.equals("broken clouds")) {
@@ -114,7 +116,7 @@ public class RouteController {
             weatherAdvice = "🌦️ Light Rain Advisory: Roads may be slick. Activate wipers and increase your following distance.";
         } else if (description.contains("moderate rain")) {
             weatherAdvice = "🌧️ Moderate Rain Warning: Reduce speed significantly and use headlights. Be alert for localized flooding.";
-        } else if (description.contains("heavy rain")) {
+        } else if (description.contains("heavy intensity rain") || description.contains("very heavy rain")) {
             weatherAdvice = "🌧️ Heavy Rain Warning: High risk of flash floods and zero visibility. It is strongly advised to postpone travel.";
         } else if (description.contains("clear sky")) {
             weatherAdvice = "🌞 Clear Skies: Ideal travel conditions. Stay aware of road traffic and hydrate, especially during long drives.";
@@ -128,7 +130,6 @@ public class RouteController {
             weatherAdvice = "💨 High Wind Advisory: Be cautious, especially with high-profile vehicles. Watch for falling debris and be prepared for sudden gusts.";
         }
         
-        // Temperature-based (for Travel Advisory box)
         if (!Double.isNaN(temp)) {
             if (temp >= 37.0) {
                 tempAdvice = "🌡️ Danger - Extreme Heat: Heatstroke risk is high. Avoid non-essential travel and stay hydrated. Never leave people or pets in a vehicle.";
@@ -150,7 +151,6 @@ public class RouteController {
     @SuppressWarnings("unchecked")
     private Map<String, Double> geocode(String place) {
         try {
-            // Parse latitude,longitude directly if given
             if (place != null && place.matches("\\-?\\d+\\.?\\d*\\s*,\\s*\\-?\\d+\\.?\\d*")) {
                 String[] coords = place.split(",");
                 double lat = Double.parseDouble(coords[0].trim());
@@ -160,9 +160,8 @@ public class RouteController {
                 map.put("lon", lon);
                 return map;
             }
-            // Geocode default for names
             RestTemplate restTemplate = new RestTemplate();
-            String url = "https://nominatim.openstreetmap.org/search?q=" + place + ", Philippines&format=json";
+            String url = "https://nominatim.openstreetmap.org/search?q=" + UriEncoder.encode(place) + ", Philippines&format=json";
             List<Map<String, Object>> results = restTemplate.getForObject(url, List.class);
             if (results != null && !results.isEmpty()) {
                 Map<String, Object> first = results.get(0);
@@ -174,7 +173,6 @@ public class RouteController {
                 return map;
             }
         } catch (Exception e) { 
-            // Log the error for debugging
             System.err.println("Geocoding failed for place: " + place + ". Error: " + e.getMessage());
         }
         return null;
@@ -187,13 +185,22 @@ public class RouteController {
             String url = String.format(
                     "https://api.openweathermap.org/data/2.5/weather?lat=%f&lon=%f&units=metric&appid=%s",
                     lat, lon, openWeatherApiKey);
-            Map<String, Object> result = restTemplate.getForObject(url, Map.class);
-            return result;
+            return restTemplate.getForObject(url, Map.class);
         } catch (Exception e) {
             System.err.println("Get weather failed. Error: " + e.getMessage());
             Map<String, Object> error = new HashMap<>();
             error.put("error", "Weather data for this point is currently unavailable.");
             return error;
+        }
+    }
+    
+    static class UriEncoder {
+        public static String encode(String s) {
+            try {
+                return java.net.URLEncoder.encode(s, "UTF-8").replace("+", "%20");
+            } catch (java.io.UnsupportedEncodingException e) {
+                return s;
+            }
         }
     }
 }

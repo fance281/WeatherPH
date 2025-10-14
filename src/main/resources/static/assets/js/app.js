@@ -1,85 +1,67 @@
-// --- MAIN APP LOGIC ---
+document.addEventListener('DOMContentLoaded', function () {
+    // --- Sidebar Toggle Functionality ---
+    const sidebarToggle = document.getElementById('sidebarToggle');
+    const dashboardContainer = document.querySelector('.dashboard-container');
 
-// Handles the "Use Current Location" button
-const handleUseLocation = () => {
-    const useLocationBtn = document.getElementById('use-location-btn');
-    if (!useLocationBtn) return;
-
-    useLocationBtn.onclick = function() {
-        if (navigator.geolocation) {
-            navigator.geolocation.getCurrentPosition(function(position) {
-                var lat = position.coords.latitude.toFixed(6);
-                var lon = position.coords.longitude.toFixed(6);
-                // Use Nominatim to get a readable address from coordinates
-                fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json`)
-                    .then(response => response.json())
-                    .then(data => {
-                        let addressStr = formatShortAddress(data.address || {});
-                        if (addressStr) {
-                            document.getElementById('origin').value = addressStr;
-                        } else if (data.display_name) {
-                            document.getElementById('origin').value = data.display_name;
-                        } else {
-                            document.getElementById('origin').value = lat + ',' + lon;
-                        }
-                    })
-                    .catch(() => {
-                        // Fallback to coordinates if address lookup fails
-                        document.getElementById('origin').value = lat + ',' + lon;
-                    });
-            }, function(err) {
-                console.error('Could not determine your position: ' + err.message);
-            });
-        } else {
-            console.error('Geolocation not available');
-        }
-    };
-};
-
-// Handles Advisory Persistence in Session Storage (for index.html only)
-const handleAdvisoryPersistence = () => {
-    const routeForm = document.getElementById('routeForm');
-    // **FIX:** Only run this logic on the index page where the form exists.
-    if (!routeForm) {
-        return;
-    }
-
-    const resultsSection = document.getElementById('resultsSection');
-    
-    // Save new advisory results to sessionStorage
-    if (resultsSection) {
-        sessionStorage.setItem('weatherph_lastResult', resultsSection.innerHTML);
-    }
-    
-    // Restore advisory from sessionStorage if no results are currently displayed
-    if (!resultsSection && sessionStorage.getItem('weatherph_lastResult')) {
-        const mainContainer = document.querySelector('main.container');
-        if (mainContainer) {
-            let restoredSection = document.createElement('section');
-            restoredSection.className = 'results';
-            restoredSection.id = 'resultsSection';
-            restoredSection.innerHTML = sessionStorage.getItem('weatherph_lastResult');
-            // Find the welcome section and insert the results after it
-            const welcomeSection = document.querySelector('.results'); // Assumes welcome is the first .results
-            if(welcomeSection && welcomeSection.nextSibling) {
-                mainContainer.insertBefore(restoredSection, welcomeSection.nextSibling);
+    if (sidebarToggle && dashboardContainer) {
+        // Function to apply the saved state
+        const applySidebarState = () => {
+            if (localStorage.getItem('sidebarCollapsed') === 'true') {
+                dashboardContainer.classList.add('sidebar-collapsed');
             } else {
-                mainContainer.appendChild(restoredSection);
+                dashboardContainer.classList.remove('sidebar-collapsed');
             }
-        }
+        };
+
+        // Apply state on page load
+        applySidebarState();
+
+        // Add click event listener
+        sidebarToggle.addEventListener('click', () => {
+            dashboardContainer.classList.toggle('sidebar-collapsed');
+            const isCollapsed = dashboardContainer.classList.contains('sidebar-collapsed');
+            localStorage.setItem('sidebarCollapsed', isCollapsed);
+            
+            // Dispatch a resize event to make components like the map aware of the size change
+            // A short delay can help ensure the CSS transition has started
+            setTimeout(() => {
+                window.dispatchEvent(new Event('resize'));
+            }, 150);
+        });
     }
 
-    // Clear sessionStorage on a new search to prevent showing old results
-    routeForm.addEventListener('submit', function() {
-        sessionStorage.removeItem('weatherph_lastResult');
-    });
-};
+    // --- Logout Confirmation Modal ---
+    const logoutButton = document.getElementById('logout-button');
+    const logoutModal = document.getElementById('logout-modal');
+    const logoutConfirmBtn = document.getElementById('logout-confirm-btn');
+    const logoutCancelBtn = document.getElementById('logout-cancel-btn');
+    const logoutCancelClose = document.getElementById('logout-cancel-close');
+    const logoutForm = document.getElementById('logout-form');
 
+    if (logoutButton && logoutModal && logoutForm) {
+        const showLogoutModal = () => {
+            if(logoutModal) logoutModal.style.display = 'flex';
+        };
 
-// --- INITIALIZATION ---
-document.addEventListener('DOMContentLoaded', function() {
-    fetchLocalWeather(); // From geoweather.js
-    handleUseLocation();
-    handleAdvisoryPersistence();
+        const hideLogoutModal = () => {
+            if(logoutModal) logoutModal.style.display = 'none';
+        };
+
+        logoutButton.addEventListener('click', showLogoutModal);
+        
+        if(logoutCancelBtn) logoutCancelBtn.addEventListener('click', hideLogoutModal);
+        if(logoutCancelClose) logoutCancelClose.addEventListener('click', hideLogoutModal);
+
+        if(logoutConfirmBtn) {
+            logoutConfirmBtn.addEventListener('click', () => {
+                logoutForm.submit();
+            });
+        }
+        
+        window.addEventListener('click', (event) => {
+            if (event.target === logoutModal) {
+                hideLogoutModal();
+            }
+        });
+    }
 });
-
