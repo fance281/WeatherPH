@@ -80,7 +80,7 @@ const fetchLocalWeather = () => {
                               <div class="mw-pill" 
                                   style="display:inline-block; background:rgba(33,158,188,0.18); 
                                          border:1px solid rgba(33,158,188,0.35); color:#bfe7f4; 
-                                         border-radius:999px; padding:5px 14px 5px 14px; font-size:13px; font-weight:600; margin-bottom:7px;">
+                                         border-radius:999px; padding:5px 14px 5px 14px; font-size:13px; font-weight:600; margin-bottom:15px;">
                                   ${desc}
                               </div>
                               <div class="mw-row">
@@ -105,7 +105,7 @@ const fetchLocalWeather = () => {
                 });
         }, error => {
             console.error('Geolocation error:', error);
-            weatherWidget.innerHTML = '<p style="font-size: 14px;">Location access denied. Enable it in your browser to see local weather.</p>';
+            weatherWidget.innerHTML = '<p style="font-size: 14px; text-align: center;">Location access denied.<br>Enable it in your browser settings to see local weather here.</p>';
         });
     } else {
         weatherWidget.innerHTML = '<p>Geolocation is not supported by your browser.</p>';

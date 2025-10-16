@@ -4,10 +4,8 @@
     <meta charset="UTF-8" />
     <title>WeatherPH Dashboard</title>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <!-- Mapbox GL JS -->
     <link href="https://api.mapbox.com/mapbox-gl-js/v2.8.1/mapbox-gl.css" rel="stylesheet" />
     <script src="https://api.mapbox.com/mapbox-gl-js/v2.8.1/mapbox-gl.js"></script>
-    <!-- Mapbox Geocoder -->
     <script src="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v5.0.0/mapbox-gl-geocoder.min.js"></script>
     <link rel="stylesheet" href="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v5.0.0/mapbox-gl-geocoder.css" type="text/css" />
     
@@ -16,7 +14,6 @@
 <body class="dashboard-body">
 
 <div class="dashboard-container">
-    <!-- Sidebar Fragment -->
     <div th:replace="~{fragments/sidebar :: sidebar}"></div>
 
     <main class="main-content">
@@ -25,52 +22,78 @@
                 <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="location-icon"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
                 <h2 id="location-name">Loading location...</h2>
             </div>
-            <div id="geocoder" class="geocoder"></div>
-        </div>
-
-        <div class="top-grid">
-            <div class="map-container">
-                <div id="map"></div>
-                <div class="map-style-selector">
-                    <button class="map-style-btn active" data-style="mapbox://styles/mapbox/dark-v10">Dark</button>
-                    <button class="map-style-btn" data-style="mapbox://styles/mapbox/streets-v11">Streets</button>
-                    <button class="map-style-btn" data-style="mapbox://styles/mapbox/satellite-streets-v11">Satellite</button>
-                </div>
-            </div>
-            <div class="current-weather-details" id="current-weather-content">
-                <!-- Current weather will be loaded here by JavaScript -->
-                <p>Loading current weather...</p>
+            <div class="search-container">
+                <label for="geocoder" class="search-label">Search Location</label>
+                <div id="geocoder" class="geocoder"></div>
             </div>
         </div>
-
-        <div class="forecast-section">
-            <div class="forecast-header">
-                <h3>Forecast</h3>
-                <div class="forecast-toggle">
-                    <button class="forecast-toggle-btn active" data-forecast="hourly">24 hours forecast</button>
-                    <button class="forecast-toggle-btn" data-forecast="daily">7 days forecast</button>
+        
+        <div class="dashboard-grid">
+            <div class="grid-col-main">
+                <div class="current-weather-details" id="current-weather-card">
+                    <div class="weather-bg-overlay"></div>
+                    <div id="current-weather-content">
+                        <p>Loading current weather...</p>
+                    </div>
+                </div>
+                <div class="map-container">
+                    <div id="map"></div>
+                     <div class="map-style-selector">
+                        <button class="map-style-btn active" data-style="mapbox://styles/mapbox/dark-v10">Dark</button>
+                        <button class="map-style-btn" data-style="mapbox://styles/mapbox/streets-v11">Streets</button>
+                        <button class="map-style-btn" data-style="mapbox://styles/mapbox/satellite-streets-v11">Satellite</button>
+                    </div>
                 </div>
             </div>
-            <div id="forecast-content">
-                <div class="hourly-forecast-table-container" id="hourly-forecast">
-                    <!-- Hourly forecast table will be loaded here -->
-                    <p>Loading hourly forecast...</p>
-                </div>
-                <div class="daily-forecast-container" id="daily-forecast" style="display: none;">
-                    <!-- Daily forecast will be loaded here -->
-                    <p>Loading 7-day forecast...</p>
+            <div class="grid-col-side">
+                <div class="forecast-section">
+                    <div class="forecast-header">
+                        <h3>Forecast</h3>
+                        <div class="forecast-toggle">
+                            <button class="forecast-toggle-btn active" data-forecast="hourly">Hourly</button>
+                            <button class="forecast-toggle-btn" data-forecast="daily">7-Day</button>
+                        </div>
+                    </div>
+                    <div id="forecast-content">
+                        <div id="hourly-forecast">
+                            <p>Loading hourly forecast...</p>
+                        </div>
+                        <div id="daily-forecast" style="display: none;">
+                            <p>Loading 7-day forecast...</p>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
-
     </main>
 </div>
 
-<!-- Logout Modal Fragment -->
 <div th:replace="~{fragments/sidebar :: logout-modal}"></div>
 
+<div id="login-success-modal" class="modal-overlay">
+    <div class="modal-content" style="max-width: 400px;">
+        <div class="modal-header" style="text-align: center; border-bottom: none;">
+             <div class="success-icon" style="color: var(--accent);">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="64px" height="64px"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
+            </div>
+            <h2>Login Successful!</h2>
+        </div>
+        <div class="modal-body" style="text-align: center;">
+            <p>Welcome back! You are now logged into your WeatherPH dashboard.</p>
+            <div style="text-align: center; margin-top: 20px;">
+                <button id="close-login-success-btn" class="btn btn-primary">Start Exploring</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script th:inline="javascript">
+    /* Store the Mapbox API key from the model into a JavaScript variable */
+    const MAPBOX_TOKEN = /*[[${mapboxApiKey}]]*/ 'DEFAULT_FALLBACK_TOKEN';
+</script>
 <script th:src="@{/assets/js/app.js}"></script>
 <script th:src="@{/assets/js/dashboard.js}"></script>
 
 </body>
 </html>
+

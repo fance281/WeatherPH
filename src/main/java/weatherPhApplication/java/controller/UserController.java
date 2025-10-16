@@ -3,8 +3,6 @@ package weatherPhApplication.java.controller;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
-// NEW IMPORT: Needed for injecting configuration properties
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -27,10 +25,8 @@ public class UserController {
 
     @Autowired
     private EmailService emailService;
-
-    // INJECT THE CONFIGURABLE BASE URL
-    @Value("${app.base-url}")
-    private String appBaseUrl;
+    
+    // NOTE: Original version did NOT have @Value injection
 
     @GetMapping("/login")
     public String showLoginForm(Model model) {
@@ -62,7 +58,6 @@ public class UserController {
         String token = UUID.randomUUID().toString();
         userService.createVerificationToken(registeredUser, token);
 
-        // USE THE INJECTED PUBLIC URL
         String confirmationUrl = getAppUrl(request) + "/verify-email?token=" + token;
         String message = "Hello,\n\n" +
                 "Thank you for registering with WeatherPH! To complete your registration and activate your account, please click the link below:\n\n" +
@@ -103,8 +98,6 @@ public class UserController {
 
         String token = UUID.randomUUID().toString();
         userService.createPasswordResetTokenForUser(user, token);
-        
-        // USE THE INJECTED PUBLIC URL
         String resetUrl = getAppUrl(request) + "/reset-password?token=" + token;
         String message = "Hello,\n\n" +
                 "A request has been received to change the password for your WeatherPH account. Please click the link below to reset your password:\n\n" +
@@ -154,11 +147,19 @@ public class UserController {
         return "redirect:/login";
     }
 
-    /**
-     * Replaced the unreliable logic with the configured property.
-     */
     private String getAppUrl(HttpServletRequest request) {
-        // Return the base URL injected from application.properties or Render Environment Variable
-        return this.appBaseUrl;
+        String scheme = request.getHeader("X-Forwarded-Proto");
+        if (scheme == null) {
+            scheme = request.getScheme();
+        }
+
+        String host = request.getHeader("X-Forwarded-Host");
+        if (host == null) {
+            host = request.getServerName() + ":" + request.getServerPort();
+        }
+
+        return scheme + "://" + host + request.getContextPath();
     }
+    
+    
 }

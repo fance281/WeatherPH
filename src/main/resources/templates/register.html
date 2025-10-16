@@ -8,6 +8,11 @@
 </head>
 <body class="auth-body">
 
+<div class="auth-brand">
+    <span class="logo">☁️</span>
+    <span class="brand-name">WeatherPH</span>
+</div>
+
 <div class="background-icons">
     <div class="icon">☀️</div>
     <div class="icon">☁️</div>
@@ -26,6 +31,9 @@
         </div>
 
         <form th:action="@{/register}" th:object="${user}" method="post" class="auth-form" novalidate>
+            <!-- CSRF Token -->
+            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+            
             <div class="form-group">
                 <label for="firstName">First Name</label>
                 <input type="text" id="firstName" th:field="*{firstName}" placeholder="Enter your first name">
@@ -152,8 +160,6 @@
         const registerForm = document.querySelector('.auth-form');
         if (registerForm && registerButton) {
             registerForm.addEventListener('submit', (e) => {
-                // Do not prevent default, let the form submit.
-                // Check validity before changing the button state.
                 if (!registerForm.checkValidity()) {
                     return;
                 }
@@ -170,4 +176,3 @@
 
 </body>
 </html>
-

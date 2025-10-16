@@ -2,19 +2,28 @@ package weatherPhApplication.java.controller;
 
 import weatherPhApplication.java.model.RouteWeatherResponse;
 import weatherPhApplication.java.security.CustomUserDetails;
+import weatherPhApplication.java.service.WeatherService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.*;
-import org.springframework.web.client.RestTemplate;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+
+import java.text.SimpleDateFormat;
 import java.util.*;
 
 @Controller
 public class RouteController {
 
-    @Value("${app.openweather.key}")
-    private String openWeatherApiKey;
+    @Autowired
+    private WeatherService weatherService;
+
+    @Value("${app.mapbox.key}")
+    private String mapboxApiKey;
 
     // Helper method to add user details to the model
     private void addUserDetailsToModel(Model model, CustomUserDetails userDetails) {
@@ -27,48 +36,61 @@ public class RouteController {
     @GetMapping("/")
     public String index(Model model, @AuthenticationPrincipal CustomUserDetails userDetails) {
         if (userDetails == null) {
-            // If user is not authenticated, show the landing page.
             return "landing";
         }
         
-        // If user is authenticated, show the main application page.
         addUserDetailsToModel(model, userDetails);
         model.addAttribute("response", null);
         model.addAttribute("formError", null);
         model.addAttribute("currentPage", "home");
+        model.addAttribute("mapboxApiKey", mapboxApiKey);
         return "index";
     }
+
     @PostMapping("/route")
     public String getRouteAdvisory(
-            @RequestParam String origin,
-            @RequestParam String destination,
+            @RequestParam() String origin,
+            @RequestParam() String destination,
+            @RequestParam(value = "origin_lat", required = false) Double originLat,
+            @RequestParam(value = "origin_lon", required = false) Double originLon,
+            @RequestParam(value = "destination_lat", required = false) Double destinationLat,
+            @RequestParam(value = "destination_lon", required = false) Double destinationLon,
             Model model,
-            @AuthenticationPrincipal CustomUserDetails userDetails) {
+            @AuthenticationPrincipal CustomUserDetails userDetails,
+            RedirectAttributes redirectAttributes) {
+
+        if (origin.isEmpty() || destination.isEmpty() || originLat == null || originLon == null || destinationLat == null || destinationLon == null) {
+             redirectAttributes.addFlashAttribute("formError", "Please select a valid origin and destination from the search suggestions.");
+            return "redirect:/route-advisory";
+        }
         
         addUserDetailsToModel(model, userDetails);
-        model.addAttribute("currentPage", "home");
+        model.addAttribute("currentPage", "route-advisory");
+        model.addAttribute("mapboxApiKey", mapboxApiKey);
 
-        Map<String, Double> originCoords = geocode(origin);
-        Map<String, Double> destCoords = geocode(destination);
-
-        if (originCoords == null || destCoords == null) {
-            model.addAttribute("formError", "Could not locate one or both places. Please try a more specific location name.");
-            model.addAttribute("response", null);
-            return "index";
-        }
-
-        Map<String, Object> originWeather = getWeather(originCoords.get("lat"), originCoords.get("lon"));
-        Map<String, Object> destWeather = getWeather(destCoords.get("lat"), destCoords.get("lon"));
-
-        Map<String, String> originAdvisories = splitWeatherAndTempAdvisory(originWeather);
-        Map<String, String> destAdvisories   = splitWeatherAndTempAdvisory(destWeather);
-        
         RouteWeatherResponse response = new RouteWeatherResponse();
         response.setOrigin(origin);
         response.setDestination(destination);
+
+        Map<String, Object> originWeatherRaw = weatherService.getWeather(originLat, originLon);
+        Map<String, Object> destWeatherRaw = weatherService.getWeather(destinationLat, destinationLon);
+        
+        // Use mutable maps and override the name with the more specific one from Mapbox
+        Map<String, Object> originWeather = new HashMap<>(originWeatherRaw);
+        if (!originWeather.containsKey("error")) {
+            originWeather.put("name", origin);
+        }
+
+        Map<String, Object> destWeather = new HashMap<>(destWeatherRaw);
+        if (!destWeather.containsKey("error")) {
+            destWeather.put("name", destination);
+        }
+
         response.setOriginWeather(originWeather);
         response.setDestinationWeather(destWeather);
 
+        Map<String, String> originAdvisories = splitWeatherAndTempAdvisory(originWeather);
+        Map<String, String> destAdvisories   = splitWeatherAndTempAdvisory(destWeather);
 
         model.addAttribute("response", response);
         model.addAttribute("formError", null);
@@ -76,15 +98,51 @@ public class RouteController {
         model.addAttribute("originTravelHazard", originAdvisories.get("temp"));
         model.addAttribute("destinationHazard", destAdvisories.get("weather"));
         model.addAttribute("destinationTravelHazard", destAdvisories.get("temp"));
-        return "index";
+
+        model.addAttribute("originSunrise", getFormattedTime(originWeather, "sunrise"));
+        model.addAttribute("originSunset", getFormattedTime(originWeather, "sunset"));
+        model.addAttribute("destSunrise", getFormattedTime(destWeather, "sunrise"));
+        model.addAttribute("destSunset", getFormattedTime(destWeather, "sunset"));
+        
+        return "route-advisory";
     }
 
+    private String getFormattedTime(Map<String, Object> weatherData, String timeKey) {
+        if (weatherData == null || weatherData.get("sys") == null || weatherData.get("timezone") == null) {
+            return "--:--";
+        }
+        try {
+            @SuppressWarnings("unchecked")
+            Map<String, Object> sys = (Map<String, Object>) weatherData.get("sys");
+            Number timestampNum = (Number) sys.get(timeKey);
+            Number timezoneNum = (Number) weatherData.get("timezone");
+
+            if (timestampNum == null || timezoneNum == null) {
+                return "--:--";
+            }
+
+            long timestamp = timestampNum.longValue();
+            long timezone = timezoneNum.longValue();
+
+            Date date = new Date((timestamp + timezone) * 1000L);
+            SimpleDateFormat sdf = new SimpleDateFormat("h:mm a");
+            sdf.setTimeZone(TimeZone.getTimeZone("UTC"));
+            
+            return sdf.format(date);
+        } catch (Exception e) {
+            return "--:--";
+        }
+    }
+
+
     private Map<String, String> splitWeatherAndTempAdvisory(Map<String, Object> weather) {
-        String weatherAdvice = "Weather data is currently unavailable."; // Default message
-        String tempAdvice = null;
+        String weatherAdvice = "Weather data is currently unavailable.";
+        String tempAdvice = ""; 
+
         if (weather == null || weather.containsKey("error")) {
             return Map.of("weather", weatherAdvice, "temp", tempAdvice);
         }
+
         String mainCond = "", description = "";
         if (weather.get("weather") instanceof List) {
             List<?> weatherList = (List<?>) weather.get("weather");
@@ -147,61 +205,4 @@ public class RouteController {
         }
         return Map.of("weather", weatherAdvice, "temp", tempAdvice);
     }
-
-    @SuppressWarnings("unchecked")
-    private Map<String, Double> geocode(String place) {
-        try {
-            if (place != null && place.matches("\\-?\\d+\\.?\\d*\\s*,\\s*\\-?\\d+\\.?\\d*")) {
-                String[] coords = place.split(",");
-                double lat = Double.parseDouble(coords[0].trim());
-                double lon = Double.parseDouble(coords[1].trim());
-                Map<String, Double> map = new HashMap<>();
-                map.put("lat", lat);
-                map.put("lon", lon);
-                return map;
-            }
-            RestTemplate restTemplate = new RestTemplate();
-            String url = "https://nominatim.openstreetmap.org/search?q=" + UriEncoder.encode(place) + ", Philippines&format=json";
-            List<Map<String, Object>> results = restTemplate.getForObject(url, List.class);
-            if (results != null && !results.isEmpty()) {
-                Map<String, Object> first = results.get(0);
-                double lat = Double.parseDouble((String) first.get("lat"));
-                double lon = Double.parseDouble((String) first.get("lon"));
-                Map<String, Double> map = new HashMap<>();
-                map.put("lat", lat);
-                map.put("lon", lon);
-                return map;
-            }
-        } catch (Exception e) { 
-            System.err.println("Geocoding failed for place: " + place + ". Error: " + e.getMessage());
-        }
-        return null;
-    }
-
-    @SuppressWarnings("unchecked")
-    private Map<String, Object> getWeather(double lat, double lon) {
-        try {
-            RestTemplate restTemplate = new RestTemplate();
-            String url = String.format(
-                    "https://api.openweathermap.org/data/2.5/weather?lat=%f&lon=%f&units=metric&appid=%s",
-                    lat, lon, openWeatherApiKey);
-            return restTemplate.getForObject(url, Map.class);
-        } catch (Exception e) {
-            System.err.println("Get weather failed. Error: " + e.getMessage());
-            Map<String, Object> error = new HashMap<>();
-            error.put("error", "Weather data for this point is currently unavailable.");
-            return error;
-        }
-    }
-    
-    static class UriEncoder {
-        public static String encode(String s) {
-            try {
-                return java.net.URLEncoder.encode(s, "UTF-8").replace("+", "%20");
-            } catch (java.io.UnsupportedEncodingException e) {
-                return s;
-            }
-        }
-    }
 }
-

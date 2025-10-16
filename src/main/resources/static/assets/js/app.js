@@ -64,4 +64,38 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         });
     }
+    
+    // --- New Modal Logic for Login Success (FIXED CLOSE HANDLER) ---
+    function checkUrlParamsForModals() {
+        const urlParams = new URLSearchParams(window.location.search);
+        
+        // Handle Login Success Modal
+        if (urlParams.has('loginSuccess')) {
+            const modal = document.getElementById('login-success-modal');
+            const closeBtn = document.getElementById('close-login-success-btn');
+            
+            if (modal) {
+                // Show modal
+                modal.style.display = 'flex';
+                
+                const closeModal = () => {
+                    modal.style.display = 'none';
+                    // Clean URL to prevent modal from reappearing on refresh
+                    urlParams.delete('loginSuccess');
+                    window.history.replaceState({}, document.title, window.location.pathname + (urlParams.toString() ? '?' + urlParams.toString() : ''));
+                };
+
+                // CRITICAL FIX: Attach the event listener to the "Start Planning" button
+                if (closeBtn) closeBtn.addEventListener('click', closeModal); 
+                
+                // Also close if clicking outside the modal
+                window.addEventListener('click', (event) => {
+                    if (event.target === modal) closeModal();
+                });
+            }
+        }
+    }
+    
+    // Run modal checks immediately
+    checkUrlParamsForModals();
 });

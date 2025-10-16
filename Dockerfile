@@ -18,7 +18,7 @@ RUN ./mvnw dependency:go-offline
 # Copy the rest of the application source code
 COPY src ./src
 
-# Build the application JAR file
+# Build the application JAR file, skipping tests for faster, reliable build
 RUN ./mvnw package -DskipTests
 
 
@@ -31,8 +31,9 @@ WORKDIR /app
 # Copy only the built JAR file from the 'builder' stage
 COPY --from=builder /app/target/*.jar app.jar
 
-# Expose the port the application runs on
+# Expose the port the application runs on (Render uses $PORT)
 EXPOSE 8080
 	
 # The command to run the application
-ENTRYPOINT ["java","-jar","app.jar"]
+# We pass the PORT environment variable (set by Render) to Spring Boot
+ENTRYPOINT ["java","-jar","app.jar","--server.port=${PORT}"]

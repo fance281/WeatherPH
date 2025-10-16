@@ -1,11 +1,17 @@
 document.addEventListener('DOMContentLoaded', function () {
-    const MAPBOX_TOKEN = 'pk.eyJ1IjoibGFuY2UyMiIsImEiOiJjbWdrOTVvcjAwcnpyMmtxeTRlN2piaWx4In0.PqGLzIZ6SFCSQaBv2a7_JQ';
+    // The MAPBOX_TOKEN is now expected to be defined in the HTML file before this script runs.
+    if (typeof MAPBOX_TOKEN === 'undefined') {
+        console.error('Mapbox token is not defined. Please ensure it is passed from the server.');
+        return;
+    }
     mapboxgl.accessToken = MAPBOX_TOKEN;
 
     let map;
     let marker;
+    let hourlyDataStore = [];
 
     const locationNameEl = document.getElementById('location-name');
+    const currentWeatherCardEl = document.getElementById('current-weather-card');
     const currentWeatherContentEl = document.getElementById('current-weather-content');
     const hourlyForecastEl = document.getElementById('hourly-forecast');
     const dailyForecastEl = document.getElementById('daily-forecast');
@@ -13,9 +19,9 @@ document.addEventListener('DOMContentLoaded', function () {
     function initializeMap(center) {
         map = new mapboxgl.Map({
             container: 'map',
-            style: 'mapbox://styles/mapbox/dark-v10', // Default style
+            style: 'mapbox://styles/mapbox/dark-v10',
             center: center,
-            zoom: 14 // Increased zoom level
+            zoom: 12
         });
 
         marker = new mapboxgl.Marker().setLngLat(center).addTo(map);
@@ -24,24 +30,21 @@ document.addEventListener('DOMContentLoaded', function () {
             accessToken: mapboxgl.accessToken,
             mapboxgl: mapboxgl,
             marker: false,
-            countries: 'ph', // Prioritize search results for the Philippines
-            types: 'country,region,place,postcode,locality,neighborhood,address,poi', // Broader search types
+            countries: 'ph',
+            types: 'country,region,place,postcode,locality,neighborhood,address,poi',
         });
 
         document.getElementById('geocoder').appendChild(geocoder.onAdd(map));
 
         geocoder.on('result', function (e) {
             const coords = e.result.center;
-            const placeName = e.result.place_name;
-            locationNameEl.textContent = placeName;
+            locationNameEl.textContent = e.result.place_name;
             updateWeather(coords[1], coords[0]);
         });
         
-        // Add click listener to the map
         map.on('click', function(e) {
             const coords = e.lngLat;
             updateWeather(coords.lat, coords.lng);
-            // Reverse geocode to get location name from pinpoint
             fetch(`https://api.mapbox.com/geocoding/v5/mapbox.places/${coords.lng},${coords.lat}.json?access_token=${MAPBOX_TOKEN}`)
                 .then(response => response.json())
                 .then(data => {
@@ -53,14 +56,10 @@ document.addEventListener('DOMContentLoaded', function () {
                 });
         });
 
-
-        // Add event listeners for map style buttons
         document.querySelectorAll('.map-style-btn').forEach(button => {
             button.addEventListener('click', function() {
                 const style = this.getAttribute('data-style');
                 map.setStyle(style);
-                
-                // Update active button
                 document.querySelectorAll('.map-style-btn').forEach(btn => btn.classList.remove('active'));
                 this.classList.add('active');
             });
@@ -68,19 +67,10 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     function updateWeather(lat, lon) {
-        // Update marker and map view
         const newCoords = [lon, lat];
         marker.setLngLat(newCoords);
-        map.flyTo({ 
-            center: newCoords, 
-            zoom: 14, // Increased zoom level
-            duration: 2000, // Makes the animation smoother
-            easing: function (t) {
-                return t * (2 - t);
-            }
-        });
+        map.flyTo({ center: newCoords, zoom: 12, duration: 2000, easing: t => t * (2 - t) });
 
-        // Fetch Current Weather
         fetch(`/api/localweather?lat=${lat}&lon=${lon}`)
             .then(response => response.json())
             .then(data => {
@@ -95,7 +85,6 @@ document.addEventListener('DOMContentLoaded', function () {
                 currentWeatherContentEl.innerHTML = `<p>Could not load weather data.</p>`;
             });
 
-        // Fetch Forecast (from 2.5/forecast API)
         fetch(`/api/forecast?lat=${lat}&lon=${lon}`)
             .then(response => response.json())
             .then(data => {
@@ -104,6 +93,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     dailyForecastEl.innerHTML = `<p>${data.error}</p>`;
                     return;
                 }
+                hourlyDataStore = data.list; // Store for reuse
                 displayHourlyForecast(data.list);
                 displayDailyForecast(data.list);
             })
@@ -113,150 +103,200 @@ document.addEventListener('DOMContentLoaded', function () {
             });
     }
 
+    function setWeatherBackground(weatherMain) {
+        const bgOverlay = currentWeatherCardEl.querySelector('.weather-bg-overlay');
+        let imageUrl = '';
+        switch (weatherMain) {
+            case 'Clear':
+                imageUrl = 'https://images.unsplash.com/photo-1590071353885-d75bae2135ab?q=80&w=1887&auto=format&fit=crop';
+                break;
+            case 'Clouds':
+                imageUrl = 'https://images.unsplash.com/photo-1501630834273-4b5604d2ee31?q=80&w=2070&auto=format&fit=crop';
+                break;
+            case 'Rain':
+            case 'Drizzle':
+                imageUrl = 'https://images.unsplash.com/photo-1534274988757-a28bf1a57c17?q=80&w=1935&auto=format&fit=crop';
+                break;
+            case 'Thunderstorm':
+                imageUrl = 'https://images.unsplash.com/photo-1605727226343-9364a6f44558?q=80&w=1887&auto=format&fit=crop';
+                break;
+            case 'Snow':
+                 imageUrl = 'https://images.unsplash.com/photo-1483664852095-d692180e2e5b?q=80&w=2070&auto=format&fit=crop';
+                break;
+            default: // Mist, Smoke, Haze, etc.
+                imageUrl = 'https://images.unsplash.com/photo-1543236338-0276d1637519?q=80&w=1933&auto=format&fit=crop';
+        }
+        bgOverlay.style.backgroundImage = `url('${imageUrl}')`;
+    }
+
+    function formatTime(unix, timezoneOffset) {
+      if (!unix) return '--:--';
+      const date = new Date((unix + timezoneOffset) * 1000);
+      let hours = date.getUTCHours();
+      const minutes = date.getUTCMinutes();
+      const ampm = hours >= 12 ? 'PM' : 'AM';
+      hours = hours % 12;
+      hours = hours ? hours : 12; // the hour '0' should be '12'
+      const minutesStr = minutes < 10 ? '0' + minutes : minutes;
+      return hours + ':' + minutesStr + ' ' + ampm;
+    }
+
     function displayCurrentWeather(data) {
-        // Only update location name if the geocoder hasn't already
         if (!locationNameEl.textContent.includes(',')) {
             locationNameEl.textContent = data.name;
         }
         const weather = data.weather[0];
-        const iconUrl = `https://openweathermap.org/img/wn/${weather.icon}@2x.png`;
-
-        // Convert wind speed from m/s to km/h
+        const iconUrl = `https://openweathermap.org/img/wn/${weather.icon}@4x.png`;
         const windSpeedKmh = (data.wind.speed * 3.6).toFixed(1);
+        const visibilityKm = (data.visibility / 1000).toFixed(1);
+        const sunrise = formatTime(data.sys.sunrise, data.timezone);
+        const sunset = formatTime(data.sys.sunset, data.timezone);
+
+
+        setWeatherBackground(weather.main);
 
         currentWeatherContentEl.innerHTML = `
-            <div class="current-temp">${(data.main.temp).toFixed(1)}°C</div>
-            <div class="current-desc">
+             <div class="weather-main-info">
                 <img src="${iconUrl}" alt="${weather.description}">
-                <span>${weather.description}</span>
+                <div class="current-temp">${(data.main.temp).toFixed(1)}°C</div>
+                <div class="current-desc">${weather.description}</div>
             </div>
             <div class="weather-extra-details">
-                 <p>
-                    <strong>Feels like:</strong> <span>${(data.main.feels_like).toFixed(1)}°C</span>
-                </p>
-                <p>
-                    <strong>Humidity:</strong> <span>${data.main.humidity}%</span>
-                </p>
-                <p>
-                    <strong>Wind:</strong> <span>${windSpeedKmh} km/h</span>
-                </p>
-                <p>
-                    <strong>Pressure:</strong> <span>${data.main.pressure} hPa</span>
-                </p>
+                <p><strong>Feels like</strong> <span>${(data.main.feels_like).toFixed(1)}°C</span></p>
+                <p><strong>Wind</strong> <span>${windSpeedKmh} km/h</span></p>
+                <p><strong>Humidity</strong> <span>${data.main.humidity}%</span></p>
+                <p><strong>Visibility</strong> <span>${visibilityKm} km</span></p>
+                <p><strong>Sunrise</strong> <span>${sunrise}</span></p>
+                <p><strong>Sunset</strong> <span>${sunset}</span></p>
             </div>
         `;
     }
 
     function displayHourlyForecast(list) {
-        hourlyForecastEl.innerHTML = '';
-        if (!list) return;
-    
-        const next8intervals = list.slice(0, 8);
-    
-        const table = document.createElement('table');
-        table.className = 'hourly-forecast-table';
-    
-        const thead = document.createElement('thead');
-        let headerRow = '<tr><th></th>';
-        next8intervals.forEach(item => {
+        if (!list || list.length === 0) {
+            hourlyForecastEl.innerHTML = '<p>Hourly forecast not available.</p>';
+            return;
+        }
+        hourlyForecastEl.innerHTML = ''; 
+
+        const next8Hours = list.slice(0, 8);
+
+        next8Hours.forEach((item) => {
             const date = new Date(item.dt * 1000);
             let hours = date.getHours();
             const ampm = hours >= 12 ? 'PM' : 'AM';
             hours = hours % 12;
             hours = hours ? hours : 12;
             const timeString = `${hours} ${ampm}`;
-            headerRow += `<th>${timeString}</th>`;
-        });
-        headerRow += '</tr>';
-        thead.innerHTML = headerRow;
-    
-        const tbody = document.createElement('tbody');
-        let weatherRow = '<tr><td><div class="td-flex-content"><svg class="detail-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"></path></svg> Weather</div></td>';
-        let tempRow = `<tr><td><div class="td-flex-content"><svg class="detail-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 14.76V3.5a2.5 2.5 0 0 0-5 0v11.26a4.5 4.5 0 1 0 5 0z"></path></svg> Temp (°C)</div></td>`;
-        let humidityRow = `<tr><td><div class="td-flex-content"><svg class="detail-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"></path></svg> Humidity (%)</div></td>`;
-    
-        next8intervals.forEach(item => {
-            const iconUrl = `https://openweathermap.org/img/wn/${item.weather[0].icon}.png`;
-            const tooltipContent = `
-                Feels like: ${(item.main.feels_like).toFixed(2)}°C<br>
-                Precipitation: ${item.pop * 100}%<br>
-                Wind speed: ${(item.wind.speed * 3.6).toFixed(1)} km/h<br>
-                Wind direction: ${item.wind.deg}°
+            
+            const iconUrl = `https://openweathermap.org/img/wn/${item.weather[0].icon}@2x.png`;
+            const temp = `${(item.main.temp).toFixed(0)}°`;
+            const description = item.weather[0].description;
+            
+            const itemWrapper = document.createElement('div');
+            
+            const hourlyItem = document.createElement('div');
+            hourlyItem.className = 'daily-item';
+            hourlyItem.innerHTML = `
+                <div class="daily-date">
+                    <div>${timeString}</div>
+                    <div class="daily-desc">${description}</div>
+                </div>
+                <img src="${iconUrl}" alt="${description}">
+                <div class="daily-temp">${temp}C</div>
             `;
-            weatherRow += `<td><div class="tooltip-container"><img src="${iconUrl}" alt="${item.weather[0].description}"><div class="tooltip">${tooltipContent}</div></div></td>`;
-            tempRow += `<td><div class="tooltip-container">${(item.main.temp).toFixed(1)}<div class="tooltip">${tooltipContent}</div></div></td>`;
-            humidityRow += `<td><div class="tooltip-container">${item.main.humidity}<div class="tooltip">${tooltipContent}</div></div></td>`;
+            
+            const detailsItem = document.createElement('div');
+            detailsItem.className = 'daily-details';
+            detailsItem.innerHTML = `
+                <div><strong>Feels like</strong><span>${(item.main.feels_like).toFixed(1)}°C</span></div>
+                <div><strong>Wind</strong><span>${(item.wind.speed * 3.6).toFixed(1)} km/h</span></div>
+                <div><strong>Humidity</strong><span>${item.main.humidity}%</span></div>
+                <div><strong>Pressure</strong><span>${item.main.pressure} hPa</span></div>
+                <div style="grid-column: 1 / -1;"><strong>Cloud Cover</strong><span>${item.clouds.all}%</span></div>
+            `;
+
+            hourlyItem.addEventListener('click', () => {
+                const isActive = hourlyItem.classList.toggle('active');
+                detailsItem.classList.toggle('show', isActive);
+            });
+
+            itemWrapper.appendChild(hourlyItem);
+            itemWrapper.appendChild(detailsItem);
+            hourlyForecastEl.appendChild(itemWrapper);
         });
-    
-        weatherRow += '</tr>';
-        tempRow += '</tr>';
-        humidityRow += '</tr>';
-        tbody.innerHTML = weatherRow + tempRow + humidityRow;
-        
-        table.appendChild(thead);
-        table.appendChild(tbody);
-        hourlyForecastEl.appendChild(table);
     }
-    
 
     function displayDailyForecast(list) {
-        dailyForecastEl.innerHTML = '';
-        if (!list) return;
+        if (!list) {
+             dailyForecastEl.innerHTML = '<p>Daily forecast not available.</p>';
+            return;
+        }
         
         const dailyData = {};
-
         list.forEach(item => {
-            const date = new Date(item.dt * 1000).toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' });
-            if (!dailyData[date]) {
-                dailyData[date] = {
+            const date = new Date(item.dt * 1000);
+            const day = date.toISOString().split('T')[0];
+            if (!dailyData[day]) {
+                dailyData[day] = {
                     temps: [],
-                    feels_like: [],
-                    pops: [],
-                    wind_speeds: [],
-                    wind_degs: [],
+                    humidity: [],
+                    wind: [],
                     icons: {},
                     descriptions: {}
                 };
             }
-            dailyData[date].temps.push(item.main.temp);
-            dailyData[date].feels_like.push(item.main.feels_like);
-            dailyData[date].pops.push(item.pop);
-            dailyData[date].wind_speeds.push(item.wind.speed);
-            dailyData[date].wind_degs.push(item.wind.deg);
+            dailyData[day].temps.push(item.main.temp);
+            dailyData[day].humidity.push(item.main.humidity);
+            dailyData[day].wind.push(item.wind.speed);
             const icon = item.weather[0].icon.replace('n', 'd');
-            dailyData[date].icons[icon] = (dailyData[date].icons[icon] || 0) + 1;
-            dailyData[date].descriptions[item.weather[0].description] = (dailyData[date].descriptions[item.weather[0].description] || 0) + 1;
+            dailyData[day].icons[icon] = (dailyData[day].icons[icon] || 0) + 1;
+            dailyData[day].descriptions[item.weather[0].description] = (dailyData[day].descriptions[item.weather[0].description] || 0) + 1;
         });
 
-        Object.keys(dailyData).slice(0, 7).forEach(date => {
-            const day = dailyData[date];
-            const maxTemp = (Math.max(...day.temps)).toFixed(1);
-            const minTemp = (Math.min(...day.temps)).toFixed(1);
-            const avgFeelsLike = (day.feels_like.reduce((a, b) => a + b, 0) / day.feels_like.length).toFixed(2);
-            const avgPop = ((day.pops.reduce((a, b) => a + b, 0) / day.pops.length) * 100).toFixed(0);
-            const avgWindSpeed = ((day.wind_speeds.reduce((a, b) => a + b, 0) / day.wind_speeds.length) * 3.6).toFixed(1);
-            const avgWindDeg = (day.wind_degs.reduce((a, b) => a + b, 0) / day.wind_degs.length).toFixed(0);
+        dailyForecastEl.innerHTML = '';
+
+        Object.keys(dailyData).slice(0, 7).forEach(day => {
+            const dayData = dailyData[day];
+            const date = new Date(day);
+            const dayName = date.toLocaleDateString(undefined, { weekday: 'long' });
+            const maxTemp = Math.round(Math.max(...dayData.temps));
+            const minTemp = Math.round(Math.min(...dayData.temps));
+            const avgHumidity = Math.round(dayData.humidity.reduce((a, b) => a + b, 0) / dayData.humidity.length);
+            const maxWind = (Math.max(...dayData.wind) * 3.6).toFixed(1);
+            const mostCommonIcon = Object.keys(dayData.icons).reduce((a, b) => dayData.icons[a] > dayData.icons[b] ? a : b);
+            const iconUrl = `https://openweathermap.org/img/wn/${mostCommonIcon}@2x.png`;
+            const mostCommonDesc = Object.keys(dayData.descriptions).reduce((a, b) => dayData.descriptions[a] > dayData.descriptions[b] ? a : b);
+
+            const itemWrapper = document.createElement('div');
             
-            const mostCommonIcon = Object.keys(day.icons).reduce((a, b) => day.icons[a] > day.icons[b] ? a : b);
-            const iconUrl = `https://openweathermap.org/img/wn/${mostCommonIcon}.png`;
-            const mostCommonDesc = Object.keys(day.descriptions).reduce((a, b) => day.descriptions[a] > day.descriptions[b] ? a : b);
-
-            const tooltipContent = `
-                Feels like: ${avgFeelsLike}°C<br>
-                Precipitation: ${avgPop}%<br>
-                Wind speed: ${avgWindSpeed} km/h<br>
-                Wind direction: ${avgWindDeg}°
-            `;
-
             const dailyItem = document.createElement('div');
-            dailyItem.className = 'daily-item tooltip-container';
+            dailyItem.className = 'daily-item';
             dailyItem.innerHTML = `
-                <span class="daily-date">${date}</span>
+                <div class="daily-date">
+                    <div>${dayName}</div>
+                    <div class="daily-desc">${mostCommonDesc}</div>
+                </div>
                 <img src="${iconUrl}" alt="${mostCommonDesc}">
-                <span class="daily-temp">${maxTemp}° / ${minTemp}°</span>
-                <div class="tooltip">${tooltipContent}</div>
+                <div class="daily-temp">${maxTemp}° / ${minTemp}°</div>
             `;
-            dailyForecastEl.appendChild(dailyItem);
+            
+            const detailsItem = document.createElement('div');
+            detailsItem.className = 'daily-details';
+            detailsItem.innerHTML = `
+                <div><strong>Avg. Humidity</strong><span>${avgHumidity}%</span></div>
+                <div><strong>Max Wind</strong><span>${maxWind} km/h</span></div>
+                <div style="grid-column: 1 / -1;"><strong>Condition</strong><span style="text-transform:capitalize;">${mostCommonDesc}</span></div>
+            `;
+
+            dailyItem.addEventListener('click', () => {
+                const isActive = dailyItem.classList.toggle('active');
+                detailsItem.classList.toggle('show', isActive);
+            });
+
+            itemWrapper.appendChild(dailyItem);
+            itemWrapper.appendChild(detailsItem);
+            dailyForecastEl.appendChild(itemWrapper);
         });
     }
 
@@ -269,7 +309,6 @@ document.addEventListener('DOMContentLoaded', function () {
                     initializeMap(initialCoords);
                     updateWeather(latitude, longitude);
 
-                    // Reverse geocode to get initial location name
                     fetch(`https://api.mapbox.com/geocoding/v5/mapbox.places/${longitude},${latitude}.json?access_token=${MAPBOX_TOKEN}`)
                         .then(response => response.json())
                         .then(data => {
@@ -279,7 +318,6 @@ document.addEventListener('DOMContentLoaded', function () {
                         });
                 },
                 () => {
-                    // Fallback to a default location (e.g., Manila)
                     const fallbackCoords = [120.9842, 14.5995];
                     initializeMap(fallbackCoords);
                     updateWeather(fallbackCoords[1], fallbackCoords[0]);
@@ -287,7 +325,6 @@ document.addEventListener('DOMContentLoaded', function () {
                 }
             );
         } else {
-            // Fallback for browsers without geolocation
             const fallbackCoords = [120.9842, 14.5995];
             initializeMap(fallbackCoords);
             updateWeather(fallbackCoords[1], fallbackCoords[0]);
@@ -295,28 +332,26 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
-    // --- Event Listener for Forecast Toggle ---
     const forecastToggleButtons = document.querySelectorAll('.forecast-toggle-btn');
-    const hourlyForecastContainer = document.getElementById('hourly-forecast');
-    const dailyForecastContainer = document.getElementById('daily-forecast');
-
     forecastToggleButtons.forEach(button => {
         button.addEventListener('click', function() {
-            // Update button active state
             forecastToggleButtons.forEach(btn => btn.classList.remove('active'));
             this.classList.add('active');
-
-            // Show/hide forecast containers
             const forecastType = this.getAttribute('data-forecast');
             if (forecastType === 'hourly') {
-                hourlyForecastContainer.style.display = 'block';
-                dailyForecastContainer.style.display = 'none';
+                hourlyForecastEl.style.display = 'flex';
+                dailyForecastEl.style.display = 'none';
             } else {
-                hourlyForecastContainer.style.display = 'none';
-                dailyForecastContainer.style.display = 'flex';
+                hourlyForecastEl.style.display = 'none';
+                dailyForecastEl.style.display = 'flex';
             }
         });
     });
+
+    // Set default view
+    hourlyForecastEl.style.display = 'flex';
+    dailyForecastEl.style.display = 'none';
+
 
     getUserLocation();
 });

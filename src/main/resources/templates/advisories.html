@@ -5,6 +5,44 @@
     <title>WeatherPH - Advisories</title>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <link th:href="@{/assets/css/styles.css}" rel="stylesheet" />
+    <style>
+        .card-body ul {
+            list-style-type: none;
+            padding-left: 0;
+            margin: 0;
+        }
+        .card-body li {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            margin-bottom: 12px;
+            color: var(--muted);
+        }
+        .card-body li .icon {
+            flex-shrink: 0;
+            margin-top: 3px;
+            color: var(--accent);
+        }
+        .signal-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+            font-size: 14px;
+        }
+        .signal-table th, .signal-table td {
+            border: 1px solid var(--border-color);
+            padding: 8px 12px;
+            text-align: left;
+        }
+        .signal-table th {
+            background-color: var(--bg-alt);
+            font-weight: 600;
+        }
+        .signal-table .signal-level {
+            font-weight: 700;
+            white-space: nowrap;
+        }
+    </style>
 </head>
 <body class="dashboard-body">
 
@@ -14,77 +52,137 @@
 
     <main class="main-content">
         <section class="advisory-header">
-            <h1>Weather & Road Hazard Advisories</h1>
+            <h1>Travel Safety Advisories for the Philippines</h1>
             <p>
-                Travel in the Philippines means dealing with quickly-changing weather and unpredictable road conditions.
-                Intense rain and typhoons can flood streets in minutes. Landslides, falling debris, or accidents can create new hazards during storms. Extreme heat may cause vehicle problems and impact health.
+                Navigating the Philippines requires vigilance against its dynamic weather. From sudden tropical downpours to intense heat and typhoons, conditions can change rapidly. This guide provides essential safety tips for common hazards to help you plan safer journeys.
             </p>
         </section>
         <section class="results">
-            <h2 class="section-title">Current Safety Tips</h2>
+            <h2 class="section-title">Hazard-Specific Safety Tips</h2>
             <div class="cards">
-                <!-- WEATHER HAZARDS -->
+                <!-- TYPHOON HAZARDS -->
                 <div class="card">
                     <div class="card-header">
-                        <h3>Heavy Rain / Flooding</h3>
+                        <h3>🌀 Typhoon & Strong Winds</h3>
+                    </div>
+                    <div class="card-body">
+                        <p>Typhoons (Bagyo) are the most significant weather threat. Understanding PAGASA's Public Storm Warning Signals (PSWS) is critical.</p>
+                        <table class="signal-table">
+                            <thead>
+                                <tr>
+                                    <th>Signal</th>
+                                    <th>Wind Speed</th>
+                                    <th>Impact & Precaution</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td class="signal-level">Signal #1</td>
+                                    <td>39-61 km/h</td>
+                                    <td>Minimal threat. Be aware. Sea travel for small seacraft is risky.</td>
+                                </tr>
+                                <tr>
+                                    <td class="signal-level">Signal #2</td>
+                                    <td>62-88 km/h</td>
+                                    <td>Moderate threat. Unsafe for small seacraft. Postpone non-essential travel.</td>
+                                </tr>
+                                <tr>
+                                    <td class="signal-level">Signal #3</td>
+                                    <td>89-117 km/h</td>
+                                    <td>Serious threat. Widespread disruption likely. Avoid all travel.</td>
+                                </tr>
+                                <tr>
+                                    <td class="signal-level">Signal #4</td>
+                                    <td>118-184 km/h</td>
+                                    <td>Severe threat. Heavy damage expected. Stay indoors in a safe location.</td>
+                                </tr>
+                                <tr>
+                                    <td class="signal-level">Signal #5</td>
+                                    <td>>185 km/h</td>
+                                    <td>Extreme threat. Catastrophic damage. Evacuation may be necessary.</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        <div class="alert alert-danger" style="margin-top: 15px;">⚠️ <strong>Never travel under Signal #3 or higher.</strong> Always follow official evacuation orders from your LGU.</div>
+                    </div>
+                </div>
+
+                <!-- HEAVY RAIN / FLOODING -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3>🌧️ Heavy Rain & Flooding</h3>
                     </div>
                     <div class="card-body">
                         <ul>
-                            <li>Check PAGASA and LGU alerts before travel.</li>
-                            <li>Avoid flood-prone, low-lying roads and underpasses.</li>
-                            <li>Do not attempt to cross flooded streets—Turn Around, Don't Drown.</li>
-                            <li>Bring emergency supplies in case of sudden heavy rain.</li>
+                            <li>
+                                <span class="icon">➡️</span>
+                                <span><strong>Monitor Alerts:</strong> Before and during travel, check PAGASA advisories and local news for color-coded rainfall warnings (Yellow, Orange, Red).</span>
+                            </li>
+                            <li>
+                                <span class="icon">➡️</span>
+                                <span><strong>Avoid Flooded Roads:</strong> Never drive or walk through floodwaters. A few inches of moving water can sweep you or your vehicle away. It may also hide open manholes or debris.</span>
+                            </li>
+                            <li>
+                                <span class="icon">➡️</span>
+                                <span><strong>Know Your Route:</strong> Be aware of flood-prone areas, low-lying roads, and underpasses on your route. Plan alternatives in advance.</span>
+                            </li>
+                            <li>
+                                <span class="icon">➡️</span>
+                                <span><strong>Vehicle Prep:</strong> Ensure your wipers, tires, and brakes are in excellent condition. Slow down significantly on wet roads to prevent hydroplaning.</span>
+                            </li>
                         </ul>
-                        <div class="alert alert-warning">⚠️ Monitor real-time weather updates and advisories.</div>
                     </div>
                 </div>
+
+                <!-- EXTREME HEAT -->
                 <div class="card">
                     <div class="card-header">
-                        <h3>Strong Winds / Typhoon</h3>
+                        <h3>☀️ Extreme Heat & Travel</h3>
                     </div>
                     <div class="card-body">
                         <ul>
-                            <li>Secure outdoor belongings that could be blown away.</li>
-                            <li>Avoid travel during active typhoon/bagyo warnings.</li>
-                            <li>Stay off coastal roads during storm surge advisories.</li>
-                            <li>Keep tuned to PAGASA bulletins in your area.</li>
-                        </ul>
-                        <div class="alert alert-info">🌀 Follow storm bulletins and LGU road closure notices.</div>
-                    </div>
-                </div>
-                <div class="card">
-                    <div class="card-header">
-                        <h3>Extreme Heat</h3>
-                    </div>
-                    <div class="card-body">
-                        <ul>
-                            <li>Limit outdoor travel midday; hydrate frequently.</li>
-                            <li>Check temperature/heat index before heading out.</li>
-                            <li>Never leave pets, kids, or elders in vehicles—risk of heatstroke.</li>
+                             <li>
+                                <span class="icon">➡️</span>
+                                <span><strong>Check Heat Index:</strong> The "feels like" temperature is more critical than the actual air temperature. High humidity increases heatstroke risk.</span>
+                            </li>
+                            <li>
+                                <span class="icon">➡️</span>
+                                <span><strong>Vehicle Care:</strong> Never leave children, elderly individuals, or pets in a parked car. Check your vehicle's coolant and tire pressure, as heat increases the risk of overheating and blowouts.</span>
+                            </li>
+                            <li>
+                                <span class="icon">➡️</span>
+                                <span><strong>Stay Hydrated:</strong> Drink water consistently throughout your journey, even if you don't feel thirsty. Avoid excessive caffeine or sugary drinks.</span>
+                            </li>
                         </ul>
                     </div>
                 </div>
+                
                 <!-- ROAD HAZARDS -->
                 <div class="card">
                     <div class="card-header">
-                        <h3>Road Hazards & Travel Safety</h3>
+                        <h3>🚧 General Road & Travel Safety</h3>
                     </div>
                     <div class="card-body">
-                        <ul>
-                            <li>Check for road closures, flood, landslide or accident advisories before departing.</li>
-                            <li>Use alternate routes if hazards are reported.</li>
-                            <li>Maintain safe speed and distance, especially in hazardous weather.</li>
-                            <li>Report road problems/obstructions to authorities or LGU hotlines.</li>
+                         <ul>
+                            <li>
+                                <span class="icon">➡️</span>
+                                <span><strong>Landslide Risk:</strong> Be extra cautious when driving in mountainous areas, especially after heavy rain. Watch for falling rocks or soil.</span>
+                            </li>
+                             <li>
+                                <span class="icon">➡️</span>
+                                <span><strong>Emergency Kit:</strong> Keep a kit in your vehicle with water, non-perishable food, a first-aid kit, a flashlight, and a power bank.</span>
+                            </li>
+                            <li>
+                                <span class="icon">➡️</span>
+                                <span><strong>Inform Others:</strong> Let someone know your route and expected arrival time, especially for long-distance travel.</span>
+                            </li>
                         </ul>
-                        <div class="alert alert-warning">⚠️ Road hazards can emerge quickly during severe weather. Stay flexible and cautious.</div>
                     </div>
                 </div>
             </div>
-            <p class="disclaimer" style="margin-top:12px; text-align: center; font-size: 13px; color: var(--muted);">
-                Note: Always consult PAGASA, DPWH, MMDA, and your LGU for official road and weather bulletins.
-                <br>
-                This advisory is for general preparedness—always follow real-time updates.
-            </p>
+            <div class="alert alert-warning" style="margin:20px 0 0;">
+              <b>Disclaimer:</b> This tool is a supportive aid, not a replacement for official government guidance. For any severe weather event or disaster, always follow instructions from <strong>PAGASA, PHIVOLCS, NDRRMC, LTO,</strong> and your local LGU.
+            </div>
         </section>
     </main>
 </div>
@@ -95,3 +193,4 @@
 <script th:src="@{/assets/js/app.js}"></script>
 </body>
 </html>
+

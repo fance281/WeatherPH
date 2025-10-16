@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <title>Route Advisory - WeatherPH</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <!-- Mapbox CSS -->
+    <link href="https://api.mapbox.com/mapbox-gl-js/v2.8.1/mapbox-gl.css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v5.0.0/mapbox-gl-geocoder.css" type="text/css" />
+    
+    <link th:href="@{/assets/css/styles.css}" rel="stylesheet" />
+    <style>
+        .main-content > section {
+            margin-bottom: 2rem;
+        }
+        .main-content > section:last-child {
+            margin-bottom: 0;
+        }
+        .route-form .btn {
+            margin-top: 0.5rem;
+        }
+    </style>
+</head>
+<body class="dashboard-body">
+
+<div class="dashboard-container">
+    <!-- Sidebar Fragment -->
+    <div th:replace="~{fragments/sidebar :: sidebar}"></div>
+
+    <main class="main-content">
+        <section class="advisory-header">
+            <h1>Route Weather Advisory</h1>
+             <p class="page-description">
+                Plan your journey with confidence. Use the search bars below to select your starting point and destination. We'll provide a detailed weather breakdown for both locations to help you prepare for the conditions ahead.
+            </p>
+        </section>
+
+        <section class="route-form-section">
+            <form th:action="@{/route}" method="post" class="route-form">
+                <!-- CSRF Token -->
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+                
+                <div class="form-row">
+                    <!-- Geocoder for Origin -->
+                    <div class="form-group">
+                        <label for="origin-geocoder">📍 Origin</label>
+                        <div id="origin-geocoder" class="geocoder-container"></div>
+                        <input type="hidden" id="origin" name="origin" th:value="${response?.origin}">
+                        <input type="hidden" id="origin_lat" name="origin_lat">
+                        <input type="hidden" id="origin_lon" name="origin_lon">
+                    </div>
+                    <!-- Geocoder for Destination -->
+                    <div class="form-group">
+                        <label for="destination-geocoder">🏁 Destination</label>
+                        <div id="destination-geocoder" class="geocoder-container"></div>
+                        <input type="hidden" id="destination" name="destination" th:value="${response?.destination}">
+                        <input type="hidden" id="destination_lat" name="destination_lat">
+                        <input type="hidden" id="destination_lon" name="destination_lon">
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-primary">Get Advisory</button>
+            </form>
+        </section>
+
+        <!-- Results Section -->
+        <div th:if="${response != null}">
+            <section class="results" style="padding-top: 0;">
+                <div class="cards route-results">
+                    <!-- Origin Card -->
+                    <div class="card">
+                         <div class="card-body">
+                             <div th:if="${response.originWeather != null && !response.originWeather.containsKey('error')}" class="weather-details-grid">
+                                <h3 class="weather-location" th:text="'📍 ' + ${response.originWeather.get('name')}"></h3>
+                                
+                                <th:block th:with="weatherData=${response.originWeather}">
+                                    <div class="weather-main" th:if="${weatherData.weather != null && !#lists.isEmpty(weatherData.weather)}">
+                                        <th:block th:with="weatherDetails=${weatherData.weather[0]}, mainDetails=${weatherData.main}">
+                                            <img th:if="${weatherDetails.icon}" th:src="'https://openweathermap.org/img/wn/' + ${weatherDetails.icon} + '@4x.png'" alt="Weather icon" class="weather-icon-large"/>
+                                            <div class="weather-temp-main" th:if="${mainDetails}">
+                                                <span th:if="${mainDetails.temp}" th:text="${#numbers.formatDecimal(mainDetails.temp, 1, 0)} + '°C'"></span>
+                                                <small th:if="${mainDetails.feels_like}" th:text="'(feels like ' + ${#numbers.formatDecimal(mainDetails.feels_like, 1, 0)} + '°C)'"></small>
+                                            </div>
+                                            <div class="weather-desc-pill" th:if="${weatherDetails.description}" th:text="${weatherDetails.description}"></div>
+                                        </th:block>
+                                    </div>
+
+                                    <div class="weather-grid">
+                                        <div>
+                                            <small>Humidity</small>
+                                            <b th:if="${weatherData.main != null && weatherData.main.humidity != null}" th:text="${weatherData.main.humidity} + '%'">--</b>
+                                        </div>
+                                        <div>
+                                            <small>Wind</small>
+                                            <b th:if="${weatherData.wind != null && weatherData.wind.speed != null}" th:text="${#numbers.formatDecimal(weatherData.wind.speed * 3.6, 1, 1)} + ' km/h'">--</b>
+                                        </div>
+                                        <div>
+                                            <small>Visibility</small>
+                                            <b th:if="${weatherData.visibility}" th:text="${#numbers.formatDecimal(weatherData.visibility / 1000.0, 1, 1)} + ' km'">N/A</b>
+                                            <b th:unless="${weatherData.visibility}">N/A</b>
+                                        </div>
+                                    </div>
+                                </th:block>
+
+                                <div class="weather-sun-times">
+                                    <span th:text="'🌅 ' + ${originSunrise}"></span>
+                                    <span th:text="'🌇 ' + ${originSunset}"></span>
+                                </div>
+                                <div class="results-action" style="margin-top: 15px;">
+                                    <button class="btn btn-primary view-advisory-btn"
+                                            th:attr="data-location-name=${response.originWeather.get('name')},
+                                                     data-hazard-weather=${originHazard}, 
+                                                     data-hazard-travel=${originTravelHazard}">View Advisory</button>
+                                </div>
+                            </div>
+                            <div th:if="${response.originWeather == null or response.originWeather.containsKey('error')}" 
+                                 class="alert alert-danger" 
+                                 th:text="${response.originWeather?.get('error') ?: 'Weather data for ' + response.origin + ' is currently unavailable.'}">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Destination Card -->
+                    <div class="card">
+                         <div class="card-body">
+                            <div th:if="${response.destinationWeather != null && !response.destinationWeather.containsKey('error')}" class="weather-details-grid">
+                               <h3 class="weather-location" th:text="'🏁 ' + ${response.destinationWeather.get('name')}"></h3>
+                               
+                               <th:block th:with="weatherData=${response.destinationWeather}">
+                                    <div class="weather-main" th:if="${weatherData.weather != null && !#lists.isEmpty(weatherData.weather)}">
+                                        <th:block th:with="weatherDetails=${weatherData.weather[0]}, mainDetails=${weatherData.main}">
+                                            <img th:if="${weatherDetails.icon}" th:src="'https://openweathermap.org/img/wn/' + ${weatherDetails.icon} + '@4x.png'" alt="Weather icon" class="weather-icon-large"/>
+                                            <div class="weather-temp-main" th:if="${mainDetails}">
+                                                <span th:if="${mainDetails.temp}" th:text="${#numbers.formatDecimal(mainDetails.temp, 1, 0)} + '°C'"></span>
+                                                <small th:if="${mainDetails.feels_like}" th:text="'(feels like ' + ${#numbers.formatDecimal(mainDetails.feels_like, 1, 0)} + '°C)'"></small>
+                                            </div>
+                                            <div class="weather-desc-pill" th:if="${weatherDetails.description}" th:text="${weatherDetails.description}"></div>
+                                        </th:block>
+                                    </div>
+
+                                    <div class="weather-grid">
+                                        <div>
+                                            <small>Humidity</small>
+                                            <b th:if="${weatherData.main != null && weatherData.main.humidity != null}" th:text="${weatherData.main.humidity} + '%'">--</b>
+                                        </div>
+                                        <div>
+                                            <small>Wind</small>
+                                            <b th:if="${weatherData.wind != null && weatherData.wind.speed != null}" th:text="${#numbers.formatDecimal(weatherData.wind.speed * 3.6, 1, 1)} + ' km/h'">--</b>
+                                        </div>
+                                        <div>
+                                            <small>Visibility</small>
+                                            <b th:if="${weatherData.visibility}" th:text="${#numbers.formatDecimal(weatherData.visibility / 1000.0, 1, 1)} + ' km'">N/A</b>
+                                            <b th:unless="${weatherData.visibility}">N/A</b>
+                                        </div>
+                                    </div>
+                                </th:block>
+
+                               <div class="weather-sun-times">
+                                   <span th:text="'🌅 ' + ${destSunrise}"></span>
+                                   <span th:text="'🌇 ' + ${destSunset}"></span>
+                               </div>
+                               <div class="results-action" style="margin-top: 15px;">
+                                    <button class="btn btn-primary view-advisory-btn"
+                                            th:attr="data-location-name=${response.destinationWeather.get('name')},
+                                                     data-hazard-weather=${destinationHazard}, 
+                                                     data-hazard-travel=${destinationTravelHazard}">View Advisory</button>
+                                </div>
+                           </div>
+                            <div th:if="${response.destinationWeather == null or response.destinationWeather.containsKey('error')}" 
+                                 class="alert alert-danger"
+                                 th:text="${response.destinationWeather?.get('error') ?: 'Weather data for ' + response.destination + ' is currently unavailable.'}">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </main>
+</div>
+
+<!-- Error Modal (Unified for all errors) -->
+<div id="error-modal" class="modal-overlay" th:style="${formError != null} ? 'display: flex;' : 'display: none;'">
+    <div class="modal-content">
+        <div class="modal-header" style="text-align: center; border-bottom: none;">
+            <h2>Input Error</h2>
+        </div>
+        <div class="modal-body" style="text-align: center;">
+            <p th:text="${formError != null} ? ${formError} : 'An unexpected error occurred.'">Error message goes here.</p>
+            <div style="text-align: center; margin-top: 20px;">
+                <button id="close-error-btn" class="btn btn-primary">Okay</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<!-- Advisory Modal -->
+<div id="advisory-modal" class="modal-overlay" style="display: none;">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2 id="advisory-location-name">Travel & Weather Advisory</h2>
+            <span class="close-button" id="close-advisory-btn">&times;</span>
+        </div>
+        <div class="modal-body">
+            <div class="advisory-section">
+                <h4><span class="modal-icon">🌦️</span>Weather-Related Hazards</h4>
+                <div id="advisory-weather-hazard" class="alert"></div>
+            </div>
+            <div class="advisory-section">
+                <h4><span class="modal-icon">🌡️</span>Temperature & Comfort</h4>
+                <div id="advisory-travel-hazard" class="alert"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<!-- Logout Modal Fragment -->
+<div th:replace="~{fragments/sidebar :: logout-modal}"></div>
+
+<!-- Mapbox JS -->
+<script src="https://api.mapbox.com/mapbox-gl-js/v2.8.1/mapbox-gl.js"></script>
+<script src="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v5.0.0/mapbox-gl-geocoder.min.js"></script>
+
+<script th:inline="javascript">
+    /* Store the Mapbox API key from the model into a JavaScript variable */
+    const MAPBOX_TOKEN = /*[[${mapboxApiKey}]]*/ 'DEFAULT_FALLBACK_TOKEN';
+</script>
+<script th:src="@{/assets/js/app.js}"></script>
+<script th:src="@{/assets/js/route-advisory.js}"></script>
+</body>
+</html>
+
+	

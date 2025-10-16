@@ -10,7 +10,7 @@ public class PasswordResetToken {
     private static final int EXPIRATION = 60; // 1 hour
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY) // FIX: Changed from AUTO to IDENTITY
+    @GeneratedValue(strategy = GenerationType.IDENTITY) // FIX: Changed from AUTO to IDENTITY for MySQL compatibility
     private Long id;
 
     private String token;
