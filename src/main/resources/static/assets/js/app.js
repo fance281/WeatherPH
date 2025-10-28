@@ -26,10 +26,12 @@ document.addEventListener('DOMContentLoaded', function () {
         applySidebarState(); // Apply state on load
 
         sidebarToggle.addEventListener('click', () => {
-            if (window.innerWidth > 992) { // Only toggle if desktop toggle is active
+            // Only toggle if desktop view is active
+            if (window.innerWidth > 992) {
                 dashboardContainer.classList.toggle('sidebar-collapsed');
                 const isCollapsed = dashboardContainer.classList.contains('sidebar-collapsed');
                 localStorage.setItem('sidebarCollapsed', isCollapsed);
+                // Dispatch resize for map etc.
                 setTimeout(() => window.dispatchEvent(new Event('resize')), 150);
             }
         });
@@ -59,7 +61,13 @@ document.addEventListener('DOMContentLoaded', function () {
         const contentWrapper = sidebar.querySelector('.sidebar-content-wrapper');
         if(contentWrapper){
             contentWrapper.addEventListener('click', (event) => {
-                 event.stopPropagation();
+                 // Allow clicks on links/buttons inside to function, but don't close the menu
+                 if (event.target.tagName === 'A' || event.target.tagName === 'BUTTON') {
+                     // Optionally close the menu after clicking a link/button
+                     // sidebar.classList.remove('mobile-nav-open');
+                 } else {
+                    event.stopPropagation();
+                 }
             });
         }
     }
@@ -72,7 +80,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const logoutCancelClose = document.getElementById('logout-cancel-close');
     const logoutForm = document.getElementById('logout-form');
     // Select the standard logout button (now used in both desktop/mobile dropdown)
-    const logoutButton = document.getElementById('logout-button');
+    const logoutButton = document.getElementById('logout-button'); // This ID is now on the button inside .user-details
 
 
     if (logoutButton && logoutModal && logoutForm) {
@@ -90,6 +98,8 @@ document.addEventListener('DOMContentLoaded', function () {
         };
 
         // Add listener to the single logout button
+        // Need to ensure this listener is attached even if the button is initially hidden in the dropdown
+        // Using event delegation might be safer, but this should work if the element exists in the DOM.
         logoutButton.addEventListener('click', showLogoutModal);
 
         if(logoutCancelBtn) logoutCancelBtn.addEventListener('click', hideLogoutModal);
@@ -149,3 +159,4 @@ document.addEventListener('DOMContentLoaded', function () {
     // Run modal checks immediately
     checkUrlParamsForModals();
 });
+
