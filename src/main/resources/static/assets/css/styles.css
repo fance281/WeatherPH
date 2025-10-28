@@ -352,9 +352,6 @@ body {
 }
 
 
-@media (max-width: 1200px) { .dashboard-grid { grid-template-columns: 1fr; height: auto; } .main-header { flex-direction: column; gap: 15px; align-items: flex-start; } .geocoder { width: 100%; } }
-@media (max-width: 880px){ .cards{ grid-template-columns: 1fr; } .dashboard-container { flex-direction: column; } .sidebar { width: 100%; height: auto; border-right: none; border-bottom: 1px solid var(--border-color); overflow-y: hidden; } }
-
 body { display: flex; flex-direction: column; min-height: 100vh; }
 main.container, main.auth-container, .dashboard-container { flex: 1; }
 
@@ -627,7 +624,43 @@ main.container, main.auth-container, .dashboard-container { flex: 1; }
 }
 
 
-/* === Responsive adjustments for Authentication Pages === */
+/* === GENERAL RESPONSIVE ADJUSTMENTS (Larger Breakpoints) === */
+@media (max-width: 1200px) {
+    .dashboard-grid { grid-template-columns: 1fr; height: auto; }
+    .main-header { flex-direction: column; gap: 15px; align-items: flex-start; }
+    .geocoder { width: 100%; }
+}
+
+@media (max-width: 992px) { /* Adjust sidebar behavior earlier */
+    .dashboard-container { flex-direction: column; }
+    .sidebar { width: 100%; height: auto; border-right: none; border-bottom: 1px solid var(--border-color); overflow-y: hidden; }
+    .main-content { padding: 15px; } /* Reduce padding */
+    .cards { grid-template-columns: 1fr; } /* Stack cards earlier */
+    .route-form .form-row { grid-template-columns: 1fr; } /* Stack route form inputs */
+    .route-form .btn { align-self: center; width: 80%; max-width: 300px; } /* Center route button */
+}
+
+@media (max-width: 768px) { /* Tablet and smaller phones */
+    .main-header h2 { font-size: 20px; }
+    .advisory-header h1 { font-size: 2em; }
+    .advisory-header p { font-size: 1em; }
+    .weather-main-info img { width: 100px; height: 100px; margin-top: -15px; }
+    .current-temp { font-size: 3.5rem; }
+    .current-desc { font-size: 1.1rem; }
+    .weather-extra-details { font-size: 13px; gap: 8px 12px; }
+    .weather-icon-large { width: 60px; height: 60px; }
+    .weather-temp-main span { font-size: 28px; }
+    .weather-grid { grid-template-columns: repeat(2, 1fr); } /* Adjust weather grid layout */
+    .weather-grid > div:last-child { grid-column: 1 / -1; } /* Center last item if odd number */
+    .signal-table th, .signal-table td { padding: 6px 8px; font-size: 13px; }
+
+    /* Make map style buttons smaller */
+    .map-style-selector { padding: 3px; }
+    .map-style-btn { padding: 3px 8px; font-size: 12px; }
+}
+
+
+/* === Responsive adjustments for Authentication Pages (Small Screens) === */
 @media (max-width: 480px) {
     .auth-card {
         padding: 24px 20px; /* Reduce horizontal padding */
@@ -667,4 +700,21 @@ main.container, main.auth-container, .dashboard-container { flex: 1; }
          padding: 20px;
     }
 
+    /* Further reduce padding for main content on smallest screens */
+    .main-content { padding: 10px; }
+    .forecast-section { padding: 15px; }
+    .current-weather-details { padding: 18px; }
+    .weather-extra-details { grid-template-columns: repeat(2, 1fr); } /* Stack extra details */
+    .weather-extra-details p:nth-child(5), .weather-extra-details p:nth-child(6) { grid-column: 1 / -1; } /* Center sunrise/sunset */
+    .main-header { margin-bottom: 15px; }
+    .location-display { gap: 8px; }
+    .main-header h2 { font-size: 18px; }
+    .search-label { display: none; } /* Hide search label */
+    .search-container { width: 100%; }
+    .geocoder { width: 100%; }
+    .advisory-header h1 { font-size: 1.8em; margin-bottom: 15px; }
+    .advisory-header p { font-size: 0.9em; }
+    .signal-table th, .signal-table td { font-size: 12px; }
+    .route-form-section { padding: 15px; }
+    .route-form .btn { width: 100%; }
 }
