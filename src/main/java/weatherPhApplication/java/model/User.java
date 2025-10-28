@@ -28,14 +28,9 @@ public class User {
     @Size(min = 8, message = "Password must be at least 8 characters long")
     private String password;
 
-    // Add this field
-    @Transient // Important: Do not persist this field in the database
-    @NotEmpty(message = "Please confirm your password")
-    private String confirmPassword;
-
     private boolean enabled;
 
-    // Getters and Setters...
+    // Getters and Setters
     public Long getId() {
         return id;
     }
@@ -76,15 +71,6 @@ public class User {
         this.password = password;
     }
 
-    // Getter and Setter for the new field
-    public String getConfirmPassword() {
-        return confirmPassword;
-    }
-
-    public void setConfirmPassword(String confirmPassword) {
-        this.confirmPassword = confirmPassword;
-    }
-
     public boolean isEnabled() {
         return enabled;
     }
@@ -93,3 +79,4 @@ public class User {
         this.enabled = enabled;
     }
 }
+
