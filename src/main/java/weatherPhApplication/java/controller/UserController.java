@@ -25,7 +25,7 @@ public class UserController {
 
     @Autowired
     private EmailService emailService;
-    
+
     // NOTE: Original version did NOT have @Value injection
 
     @GetMapping("/login")
@@ -46,9 +46,17 @@ public class UserController {
                                HttpServletRequest request,
                                RedirectAttributes redirectAttributes) {
 
+        // Check if email already exists
         if (userService.findByEmail(user.getEmail()) != null) {
             bindingResult.rejectValue("email", "error.user", "An account already exists for this email");
         }
+
+        // Added Password Confirmation Check
+        if (user.getPassword() != null && user.getConfirmPassword() != null && !user.getPassword().equals(user.getConfirmPassword())) {
+             bindingResult.rejectValue("confirmPassword", "error.user", "Passwords do not match");
+        }
+        // End of Added Check
+
 
         if (bindingResult.hasErrors()) {
             return "register";
@@ -160,6 +168,6 @@ public class UserController {
 
         return scheme + "://" + host + request.getContextPath();
     }
-    
-    
+
+
 }

@@ -31,9 +31,8 @@
         </div>
 
         <form th:action="@{/register}" th:object="${user}" method="post" class="auth-form" novalidate>
-            <!-- CSRF Token -->
             <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
-            
+
             <div class="form-group">
                 <label for="firstName">First Name</label>
                 <input type="text" id="firstName" th:field="*{firstName}" placeholder="Enter your first name">
@@ -55,6 +54,11 @@
                 <small class="error-text" th:if="${#fields.hasErrors('password')}" th:errors="*{password}"></small>
             </div>
 
+            <div class="form-group">
+                <label for="confirmPassword">Confirm Password</label>
+                <input type="password" id="confirmPassword" th:field="*{confirmPassword}" placeholder="Confirm your password">
+                <small class="error-text" th:if="${#fields.hasErrors('confirmPassword')}" th:errors="*{confirmPassword}"></small>
+            </div>
             <div class="privacy-agreement">
                 <input type="checkbox" id="privacy-agree" required>
                 <label for="privacy-agree">
@@ -75,7 +79,6 @@
     </div>
 </main>
 
-<!-- Data Privacy Modal -->
 <div id="privacy-modal" class="modal-overlay">
     <div class="modal-content">
         <div class="modal-header">
@@ -85,7 +88,7 @@
         <div class="modal-body" id="privacy-modal-body">
             <h4>1. Introduction</h4>
             <p>Your privacy is important to us. This policy explains what personal data WeatherPH collects from you and how we use it. By using our services, you agree to the collection and use of information in accordance with this policy.</p>
-            
+
             <h4>2. Personal Data We Collect</h4>
             <p>WeatherPH collects data to operate effectively and provide you the best experiences with our services. You provide some of this data directly, such as when you create a WeatherPH account. The personal information we collect includes:</p>
             <ul>
@@ -114,6 +117,7 @@
 </div>
 
 <script>
+    // Javascript remains the same as your provided version
     document.addEventListener('DOMContentLoaded', () => {
         const privacyModal = document.getElementById('privacy-modal');
         const privacyModalBody = document.getElementById('privacy-modal-body');
@@ -140,7 +144,7 @@
         if (closeButton) {
             closeButton.addEventListener('click', closeModal);
         }
-        
+
         window.addEventListener('click', (event) => {
             if (event.target === privacyModal) {
                 closeModal();
