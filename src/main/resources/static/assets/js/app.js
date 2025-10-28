@@ -71,11 +71,11 @@ document.addEventListener('DOMContentLoaded', function () {
     const logoutCancelBtn = document.getElementById('logout-cancel-btn');
     const logoutCancelClose = document.getElementById('logout-cancel-close');
     const logoutForm = document.getElementById('logout-form');
-    // Select logout triggers (original and mobile dropdown version)
-    const logoutTriggers = document.querySelectorAll('#logout-button, #logout-button-mobile');
+    // Select the standard logout button (now used in both desktop/mobile dropdown)
+    const logoutButton = document.getElementById('logout-button');
 
 
-    if (logoutTriggers.length > 0 && logoutModal && logoutForm) {
+    if (logoutButton && logoutModal && logoutForm) {
         const showLogoutModal = (event) => {
             event.stopPropagation(); // Prevent triggering document click listener
             if(logoutModal) logoutModal.style.display = 'flex';
@@ -89,8 +89,8 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         };
 
-        // Add listener to all logout triggers
-        logoutTriggers.forEach(btn => btn.addEventListener('click', showLogoutModal));
+        // Add listener to the single logout button
+        logoutButton.addEventListener('click', showLogoutModal);
 
         if(logoutCancelBtn) logoutCancelBtn.addEventListener('click', hideLogoutModal);
         if(logoutCancelClose) logoutCancelClose.addEventListener('click', hideLogoutModal);
@@ -149,4 +149,3 @@ document.addEventListener('DOMContentLoaded', function () {
     // Run modal checks immediately
     checkUrlParamsForModals();
 });
-

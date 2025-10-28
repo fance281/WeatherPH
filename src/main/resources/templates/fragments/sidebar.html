@@ -5,7 +5,7 @@
 <!--
 Fragment Definition: sidebar
 - Includes the main sidebar structure.
-- Adapts to a collapsible top-bar menu on smaller screens.
+- Adapts to a collapsible top-bar menu on smaller screens via a hamburger toggle.
 - Conditionally displays user info/nav for authenticated users or login/register links.
 -->
 <aside class="sidebar" th:fragment="sidebar">
@@ -34,10 +34,11 @@ Fragment Definition: sidebar
         <div sec:authorize="isAuthenticated()" class="sidebar-content authenticated">
             <div class="user-profile">
                 <div class="user-avatar" th:text="${userInitial}">U</div>
+                <!-- User details shown in dropdown -->
                 <div class="user-details">
                     <span class="user-name" th:text="${userFullName}">User Name</span>
                     <form id="logout-form" th:action="@{/logout}" method="post" style="display: none;"></form>
-                    <!-- Make sure this button exists for the JS -->
+                    <!-- Standard logout button, visibility controlled by CSS -->
                     <button type="button" class="logout-btn-sidebar" id="logout-button">Logout</button>
                 </div>
             </div>
@@ -59,11 +60,7 @@ Fragment Definition: sidebar
                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
                    <span>About</span>
                 </a>
-                <!-- Mobile Only Logout Button (duplicates sidebar one but easier to manage visibility) -->
-                <button type="button" class="nav-item logout-btn-mobile" id="logout-button-mobile">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
-                    <span>Logout</span>
-                </button>
+                <!-- Removed mobile-specific logout button -->
             </nav>
         </div>
 
