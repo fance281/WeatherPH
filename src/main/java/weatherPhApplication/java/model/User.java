@@ -35,7 +35,7 @@ public class User {
 
     private boolean enabled;
 
-    // Getters and Setters... (including for confirmPassword)
+    // Getters and Setters...
     public Long getId() {
         return id;
     }

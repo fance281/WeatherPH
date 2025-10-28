@@ -80,101 +80,138 @@
 </main>
 
 <div id="privacy-modal" class="modal-overlay">
-    <div class="modal-content">
-        <div class="modal-header">
-            <h2>Data Privacy Policy</h2>
-            <span class="close-button">&times;</span>
+    <div class="modal-content"> <div class="modal-header"> <h2>Data Privacy Policy</h2> <span class="close-button">&times;</span> </div>
+        <div class="modal-body" id="privacy-modal-body"> <h4>1. Introduction</h4> <p>Your privacy is important to us. This policy explains what personal data WeatherPH collects from you and how we use it. By using our services, you agree to the collection and use of information in accordance with this policy.</p> <h4>2. Personal Data We Collect</h4> <p>WeatherPH collects data to operate effectively and provide you the best experiences with our services. You provide some of this data directly, such as when you create a WeatherPH account. The personal information we collect includes:</p> <ul>
+                <li><strong>First Name and Last Name:</strong> To personalize your experience.</li> <li><strong>Email Address:</strong> To create and secure your account, and for communication purposes such as sending verification links and important notices.</li> </ul>
+
+            <h4>3. How We Use Personal Data</h4> <p>We use the data we collect to provide and improve the services we offer. This includes:</p> <ul>
+                <li>Providing our core services, including route-based weather advisories.</li> <li>Securing and maintaining your account.</li> <li>Communicating with you about your account and our services.</li> </ul>
+            <p><strong>We do not share your personal data with third parties for marketing purposes.</strong></p> <h4>4. Data Security</h4> <p>We are committed to protecting the security of your personal data. We use a variety of security technologies and procedures to help protect your personal data from unauthorized access, use, or disclosure.</p> <p>By clicking "I Agree", you acknowledge that you have read, understood, and agree to be bound by this Data Privacy Policy.</p> <div style="text-align: center; margin-top: 20px;"> <button id="agree-btn" class="btn btn-primary" disabled>I Agree</button> </div>
         </div>
-        <div class="modal-body" id="privacy-modal-body">
-            <h4>1. Introduction</h4>
-            <p>Your privacy is important to us. This policy explains what personal data WeatherPH collects from you and how we use it. By using our services, you agree to the collection and use of information in accordance with this policy.</p>
+    </div>
+</div>
 
-            <h4>2. Personal Data We Collect</h4>
-            <p>WeatherPH collects data to operate effectively and provide you the best experiences with our services. You provide some of this data directly, such as when you create a WeatherPH account. The personal information we collect includes:</p>
-            <ul>
-                <li><strong>First Name and Last Name:</strong> To personalize your experience.</li>
-                <li><strong>Email Address:</strong> To create and secure your account, and for communication purposes such as sending verification links and important notices.</li>
-            </ul>
-
-            <h4>3. How We Use Personal Data</h4>
-            <p>We use the data we collect to provide and improve the services we offer. This includes:</p>
-            <ul>
-                <li>Providing our core services, including route-based weather advisories.</li>
-                <li>Securing and maintaining your account.</li>
-                <li>Communicating with you about your account and our services.</li>
-            </ul>
-            <p><strong>We do not share your personal data with third parties for marketing purposes.</strong></p>
-
-            <h4>4. Data Security</h4>
-            <p>We are committed to protecting the security of your personal data. We use a variety of security technologies and procedures to help protect your personal data from unauthorized access, use, or disclosure.</p>
-            <p>By clicking "I Agree", you acknowledge that you have read, understood, and agree to be bound by this Data Privacy Policy.</p>
-
+<div id="error-modal" class="modal-overlay" th:if="${error != null}">
+    <div class="modal-content">
+        <div class="modal-header" style="text-align: center; border-bottom: none;">
+             <div class="error-icon" style="color: var(--danger); margin-bottom: 16px;"> <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="64px" height="64px"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>
+            </div>
+            <h2>Registration Error</h2>
+        </div>
+        <div class="modal-body" style="text-align: center;">
+            <p th:text="${error}">Error message goes here.</p>
             <div style="text-align: center; margin-top: 20px;">
-                <button id="agree-btn" class="btn btn-primary" disabled>I Agree</button>
+                <button id="close-error-btn" class="btn btn-primary">Okay</button>
             </div>
         </div>
     </div>
 </div>
 
 <script>
-    // Javascript remains the same as your provided version
     document.addEventListener('DOMContentLoaded', () => {
+        // --- Privacy Modal Logic (remains the same) ---
         const privacyModal = document.getElementById('privacy-modal');
         const privacyModalBody = document.getElementById('privacy-modal-body');
         const privacyLink = document.getElementById('privacy-link');
-        const closeButton = privacyModal.querySelector('.close-button');
+        const closePrivacyButton = privacyModal ? privacyModal.querySelector('.close-button') : null;
         const agreeButton = document.getElementById('agree-btn');
         const privacyCheckbox = document.getElementById('privacy-agree');
         const registerButton = document.getElementById('register-btn');
 
-        privacyLink.addEventListener('click', (e) => {
-            e.preventDefault();
-            privacyModal.style.display = 'flex'; // Use flex for centering
-        });
-
-        privacyModalBody.addEventListener('scroll', () => {
-            const isScrolledToBottom = Math.abs(privacyModalBody.scrollHeight - privacyModalBody.clientHeight - privacyModalBody.scrollTop) < 1;
-            agreeButton.disabled = !isScrolledToBottom;
-        });
-
-        const closeModal = () => {
-            privacyModal.style.display = 'none';
-        };
-
-        if (closeButton) {
-            closeButton.addEventListener('click', closeModal);
+        if (privacyLink) {
+             privacyLink.addEventListener('click', (e) => {
+                e.preventDefault();
+                if (privacyModal) privacyModal.style.display = 'flex';
+            });
         }
 
+       if (privacyModalBody) {
+             privacyModalBody.addEventListener('scroll', () => {
+                const isScrolledToBottom = Math.abs(privacyModalBody.scrollHeight - privacyModalBody.clientHeight - privacyModalBody.scrollTop) < 1;
+                if (agreeButton) agreeButton.disabled = !isScrolledToBottom;
+            });
+        }
+
+        const closePrivacyModal = () => {
+            if (privacyModal) privacyModal.style.display = 'none';
+        };
+
+        if (closePrivacyButton) {
+            closePrivacyButton.addEventListener('click', closePrivacyModal);
+        }
+
+        if (agreeButton) {
+            agreeButton.addEventListener('click', () => {
+                if (privacyCheckbox) {
+                     privacyCheckbox.checked = true;
+                     privacyCheckbox.dispatchEvent(new Event('change'));
+                }
+                closePrivacyModal();
+            });
+        }
+
+        if (privacyCheckbox) {
+            privacyCheckbox.addEventListener('change', () => {
+                 if (registerButton) registerButton.disabled = !privacyCheckbox.checked;
+            });
+            // Initial check in case the checkbox is already checked (e.g., browser back button)
+             if (registerButton) registerButton.disabled = !privacyCheckbox.checked;
+        }
+
+        // Close modal if clicking outside
         window.addEventListener('click', (event) => {
             if (event.target === privacyModal) {
-                closeModal();
+                closePrivacyModal();
             }
         });
 
-        agreeButton.addEventListener('click', () => {
-            privacyCheckbox.checked = true;
-            privacyCheckbox.dispatchEvent(new Event('change'));
-            closeModal();
-        });
-
-        privacyCheckbox.addEventListener('change', () => {
-            registerButton.disabled = !privacyCheckbox.checked;
-        });
-
+        // --- Loading state for Register Button ---
         const registerForm = document.querySelector('.auth-form');
         if (registerForm && registerButton) {
             registerForm.addEventListener('submit', (e) => {
-                if (!registerForm.checkValidity()) {
+                 // Basic HTML5 validation check before showing loading state
+                 if (!registerForm.checkValidity()) {
+                    // Prevent submission if form is invalid
+                    // The browser will show default validation messages
                     return;
                 }
+                // Check if privacy checkbox is checked before submission
+                if (privacyCheckbox && !privacyCheckbox.checked) {
+                    e.preventDefault(); // Stop submission
+                    // Optionally alert the user or highlight the checkbox
+                    alert("Please agree to the Data Privacy Policy.");
+                    return;
+                }
+
                 registerButton.classList.add('loading');
                 registerButton.disabled = true;
                 const btnTextSpan = registerButton.querySelector('.btn-text');
                 if (btnTextSpan) {
-                    btnTextSpan.textContent = 'Sending Verification...';
+                    btnTextSpan.textContent = 'Creating Account...'; // Updated text
                 }
             });
         }
+
+        // --- Generic Error Modal Logic ---
+        const errorModal = document.getElementById('error-modal');
+        const closeErrorBtn = document.getElementById('close-error-btn');
+
+        const closeErrorModal = () => {
+            if (errorModal) errorModal.style.display = 'none';
+        };
+
+        if (errorModal && errorModal.style.display !== 'none') { // Check if modal should be initially displayed
+             if (closeErrorBtn) {
+                 closeErrorBtn.addEventListener('click', closeErrorModal);
+            }
+            // Close modal if clicking outside
+            window.addEventListener('click', (event) => {
+                if (event.target === errorModal) {
+                    closeErrorModal();
+                }
+            });
+        }
+
     });
 </script>
 
