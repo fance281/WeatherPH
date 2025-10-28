@@ -124,8 +124,9 @@ main.container, main.auth-container, .dashboard-container { flex: 1; }
 
 /* --- DASHBOARD STYLES --- */
 .dashboard-body { display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
-.dashboard-container { display: flex; flex-grow: 1; overflow: hidden; transition: padding-left 0.3s ease; }
+.dashboard-container { display: flex; flex-grow: 1; overflow: hidden; transition: padding-left 0.3s ease; } /* padding-left transition removed for mobile */
 
+/* Default Sidebar styles (Desktop) */
 .sidebar {
     width: 250px;
     flex-shrink: 0;
@@ -134,11 +135,37 @@ main.container, main.auth-container, .dashboard-container { flex: 1; }
     border-right: 1px solid var(--border-color);
     display: flex;
     flex-direction: column;
-    transition: width 0.3s ease, padding 0.3s ease;
+    transition: width 0.3s ease, padding 0.3s ease, transform 0.3s ease; /* Added transform transition */
+    transform: translateX(0); /* Default state */
     overflow-y: auto;
     overflow-x: hidden;
 }
 
+.mobile-toggle {
+    display: none; /* Hide mobile toggle on desktop */
+}
+
+.desktop-toggle {
+    display: flex; /* Show desktop toggle */
+}
+
+.sidebar-content-wrapper {
+    /* Styles for the content wrapper */
+    opacity: 1;
+    transition: opacity 0.3s ease;
+    flex-grow: 1; /* Allow content to fill space */
+    display: flex;
+    flex-direction: column;
+}
+
+.sidebar-content {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+
+/* Sidebar Collapsed styles (Desktop) */
 .dashboard-container.sidebar-collapsed .sidebar { width: 80px; padding: 20px 10px; }
 .dashboard-container.sidebar-collapsed .brand .brand-name, /* Target within .brand */
 .dashboard-container.sidebar-collapsed .user-details,
@@ -153,8 +180,11 @@ main.container, main.auth-container, .dashboard-container { flex: 1; }
 .sidebar-toggle:hover { background-color: rgba(255,255,255,0.1); }
 .sidebar-toggle .icon-collapsed { display: none; }
 .sidebar-toggle .icon-open { display: block; }
-.dashboard-container.sidebar-collapsed .sidebar-toggle .icon-collapsed { display: block; }
-.dashboard-container.sidebar-collapsed .sidebar-toggle .icon-open { display: none; }
+
+/* Desktop Toggle Icons */
+.dashboard-container.sidebar-collapsed .desktop-toggle .icon-collapsed { display: block; }
+.dashboard-container.sidebar-collapsed .desktop-toggle .icon-open { display: none; }
+
 
 .sidebar .brand-info { display: flex; align-items: center; gap: 10px; flex-grow: 1; } /* Group logo and name */
 
@@ -165,7 +195,7 @@ main.container, main.auth-container, .dashboard-container { flex: 1; }
 .logout-btn-sidebar { background: none; border: none; color: var(--muted); cursor: pointer; padding: 4px 0; font-size: 12px; text-align: left; transition: color 0.2s; }
 .logout-btn-sidebar:hover { color: #ff8a80; }
 
-.main-nav { display: flex; flex-direction: column; gap: 10px; }
+.main-nav { display: flex; flex-direction: column; gap: 10px; margin-top: auto; /* Push nav down in sidebar */ }
 .nav-item { display: flex; align-items: center; gap: 12px; padding: 12px 15px; border-radius: 8px; color: var(--muted); text-decoration: none; transition: background-color 0.2s, color 0.2s; white-space: nowrap; }
 .nav-item svg { flex-shrink: 0; }
 .nav-item:hover, .nav-item.active { background-color: rgba(91,192,190,0.15); color: var(--text); }
@@ -429,39 +459,150 @@ main.container, main.auth-container, .dashboard-container { flex: 1; }
     .geocoder { width: 100%; }
 }
 
-@media (max-width: 992px) { /* Adjust sidebar behavior earlier */
-    .dashboard-body { height: auto; overflow: auto; } /* Allow body scroll on mobile */
-    .dashboard-container { flex-direction: column; height: auto; } /* Stack container vertically */
-    .sidebar { width: 100%; height: auto; border-right: none; border-bottom: 1px solid var(--border-color); overflow: visible; /* Allow overflow for brand/nav */ flex-shrink: 0; /* Prevent shrinking */ }
-    .main-content { padding: 15px; overflow-y: visible; /* Allow content to determine height */ }
-    .cards { grid-template-columns: 1fr; } /* Stack cards earlier */
-    .route-form .form-row { grid-template-columns: 1fr; } /* Stack route form inputs */
-    .route-form .btn { align-self: center; width: 80%; max-width: 300px; } /* Center route button */
+/* === Mobile Styles (e.g., below 992px) === */
+@media (max-width: 992px) {
+    .dashboard-body { height: auto; overflow-y: auto; } /* Allow body scroll on mobile */
+    .dashboard-container { flex-direction: column; height: auto; padding-left: 0 !important; /* Override inline style if present */} /* Stack container vertically */
 
-    /* === Sidebar as Top Bar Rules === */
-    .dashboard-container.sidebar-collapsed .sidebar {
-        width: 100%; /* Force sidebar to stay full width */
-        padding: 10px 15px; /* Restore appropriate padding for top bar */
+    .sidebar {
+        position: fixed; /* Make it fixed for overlay effect */
+        left: 0;
+        top: 0;
+        height: 100%;
+        width: 250px; /* Keep desired width */
+        z-index: 1000; /* Ensure it's above content */
+        transform: translateX(-100%); /* Hide off-screen by default */
+        transition: transform 0.3s ease; /* Smooth transition */
+        border-right: 1px solid var(--border-color); /* Add back border */
+        /* Restore vertical layout styles */
+        flex-direction: column;
+        align-items: stretch;
+        justify-content: flex-start;
+        padding: 20px; /* Restore original padding */
+        overflow-y: auto; /* Allow scrolling within sidebar if content overflows */
     }
 
-    .sidebar .sidebar-toggle { display: none; } /* Hide toggle */
+    .sidebar.mobile-nav-open {
+        transform: translateX(0); /* Slide in when open */
+    }
 
-    .sidebar { padding: 10px 15px; flex-direction: row; align-items: center; justify-content: space-between; } /* Make sidebar horizontal */
-    .sidebar .brand { margin-bottom: 0; border-bottom: none; padding-bottom: 0; width: auto; flex-grow: 0; } /* Adjust brand spacing */
-    .sidebar .brand .brand-info { display: flex; align-items: center; gap: 10px; }
-    .sidebar .sidebar-content { display: flex; flex-direction: row; align-items: center; justify-content: flex-end; width: auto; gap: 15px; } /* Horizontal layout, align right */
-    .user-profile { margin-bottom: 0; width: auto; order: 3; } /* Move profile to end */
-    .user-profile .user-details { display: none; } /* Hide name/logout in top bar */
-    .main-nav { flex-direction: row; gap: 5px; order: 2; flex-wrap: wrap; /* Allow wrapping if needed */ } /* Nav items horizontal */
-    .nav-item { padding: 8px 10px; }
-    .nav-item span { display: none; } /* Hide text labels */
+    .sidebar .brand {
+        /* Restore brand layout for vertical sidebar */
+        margin-bottom: 20px;
+        border-bottom: 1px solid var(--border-color);
+        padding-bottom: 20px;
+        width: 100%;
+        flex-grow: 0;
+        justify-content: space-between; /* Space between brand and toggle */
+    }
 
-    /* Ensure grid columns take full height available within main-content */
+     .sidebar .brand .brand-info {
+        display: flex; /* Ensure logo/name are visible */
+        align-items: center;
+        gap: 10px;
+        flex-grow: 1;
+     }
+
+     .brand .brand-name {
+        display: inline-block !important; /* Ensure brand name shows, override potential collapse styles */
+     }
+
+    .desktop-toggle {
+        display: none; /* Hide desktop toggle on mobile */
+    }
+
+    .mobile-toggle {
+        display: flex; /* Show mobile (hamburger) toggle */
+        z-index: 1001; /* Ensure toggle is clickable */
+    }
+
+    /* Style the hamburger/X icons visibility */
+     .mobile-toggle .icon-collapsed { display: none; }
+     .mobile-toggle .icon-open { display: block; }
+     .sidebar.mobile-nav-open .mobile-toggle .icon-collapsed { display: block; }
+     .sidebar.mobile-nav-open .mobile-toggle .icon-open { display: none; }
+
+    /* Adjust main content */
+    .main-content {
+        padding: 15px; /* Adjust padding for mobile */
+        margin-left: 0; /* No margin needed if sidebar overlays */
+        transition: none; /* Remove transition if not needed */
+        overflow-y: visible; /* Allow content to determine height */
+    }
+
+    /* Restore sidebar content layout for vertical display */
+     .sidebar-content-wrapper {
+        display: flex; /* Use flex again for vertical layout */
+        flex-direction: column;
+        opacity: 1; /* Ensure it's visible when sidebar is open */
+        flex-grow: 1;
+     }
+
+    .sidebar-content {
+        display: flex; /* Use flex for vertical layout */
+        flex-direction: column;
+        flex-grow: 1;
+    }
+
+    .user-profile {
+        margin-bottom: 30px; /* Restore margin */
+        order: 0; /* Restore default order */
+        justify-content: flex-start; /* Align left */
+        display: flex !important; /* Ensure profile is displayed */
+    }
+
+    .user-profile .user-details {
+        display: flex !important; /* Show user details again, override potential collapse styles */
+    }
+
+    .main-nav {
+        flex-direction: column; /* Stack nav items vertically */
+        gap: 10px;
+        order: 0; /* Restore default order */
+        flex-wrap: nowrap;
+        margin-top: auto; /* Push to bottom */
+    }
+
+    .nav-item {
+        padding: 12px 15px; /* Restore padding */
+        justify-content: flex-start; /* Align left */
+        display: flex !important; /* Ensure nav items are displayed */
+    }
+
+    .nav-item span {
+        display: inline !important; /* Show text labels again, override potential collapse styles */
+    }
+
+    /* Hide desktop collapse styles effects on mobile - Ensure sidebar remains functional */
+    .dashboard-container.sidebar-collapsed .sidebar {
+        width: 250px; /* Keep width */
+        padding: 20px; /* Keep padding */
+        transform: translateX(-100%); /* Still hidden by default */
+    }
+     .dashboard-container.sidebar-collapsed .sidebar.mobile-nav-open {
+         transform: translateX(0); /* Slide in when open */
+     }
+
+    /* Explicitly override collapsed styles on mobile if needed */
+    .dashboard-container.sidebar-collapsed .nav-item,
+    .dashboard-container.sidebar-collapsed .user-profile,
+    .dashboard-container.sidebar-collapsed .brand {
+        justify-content: flex-start;
+    }
+     .dashboard-container.sidebar-collapsed .brand .brand-info {
+        justify-content: flex-start;
+     }
+
+    /* Other Mobile Adjustments */
+    .cards { grid-template-columns: 1fr; } /* Stack cards */
+    .route-form .form-row { grid-template-columns: 1fr; } /* Stack route form inputs */
+    .route-form .btn { align-self: center; width: 80%; max-width: 300px; } /* Center route button */
     .dashboard-grid { display: flex; flex-direction: column; flex-grow: 1; }
     .grid-col-main, .grid-col-side { min-height: auto; } /* Remove min-height */
     .map-container { min-height: 40vh; /* Adjust map height for mobile */ flex-grow: 0; } /* Don't let map grow infinitely */
     .forecast-section { height: auto; flex-grow: 1; /* Allow forecast to take remaining space */ }
 }
+
 
 @media (max-width: 768px) { /* Tablet and smaller phones */
    .main-header h2 { font-size: 20px; }
@@ -479,13 +620,8 @@ main.container, main.auth-container, .dashboard-container { flex: 1; }
    .map-style-selector { padding: 3px; }
    .map-style-btn { padding: 3px 8px; font-size: 12px; }
 
-   /* Adjust top bar padding for tablets */
-   .sidebar { padding: 8px 10px; }
-   .nav-item { padding: 6px 8px; }
-   .user-profile .user-avatar { width: 40px; height: 40px; font-size: 18px; }
-
-   /* Ensure About page cards stack */
-   .cards#about-cards { /* Use an ID if specific targeting is needed, otherwise .cards rule above is sufficient */
+   /* Adjust About page cards stack */
+   .cards#about-cards {
        grid-template-columns: 1fr;
    }
 }
@@ -521,14 +657,28 @@ main.container, main.auth-container, .dashboard-container { flex: 1; }
     .route-form-section { padding: 15px; padding-bottom: 70px; /* Add padding below the form */}
     .route-form .btn { width: 100%; }
 
-    /* Final adjustments for top bar on smallest screens */
-    .sidebar { padding: 5px 8px; } /* Even less padding */
-    .sidebar .brand .brand-info .logo { font-size: 18px; } /* Target logo within brand-info */
-    .sidebar .brand .brand-info .brand-name { font-size: 16px; } /* Target name within brand-info */
-    .user-profile .user-avatar { width: 35px; height: 35px; font-size: 16px; }
-    .nav-item svg { width: 20px; height: 20px; } /* Slightly smaller icons */
-    .nav-item { padding: 5px; } /* Minimal padding */
-
     .map-container { min-height: 50vh; /* Increase map height slightly on smallest screens */ }
 }
 
+
+/* --- Mobile Nav Overlay --- */
+body::after {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 999; /* Below sidebar, above content */
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+    pointer-events: none; /* Allows clicks through overlay by default */
+}
+
+body.mobile-nav-active::after {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto; /* Make overlay clickable when active */
+}

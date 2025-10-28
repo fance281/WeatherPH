@@ -5,7 +5,8 @@
 <!--
 Fragment Definition: sidebar
 - Includes the main sidebar structure.
-- Adapts to a collapsible top-bar menu on smaller screens via a hamburger toggle.
+- Adapts to a collapsible sidebar on desktop.
+- Transforms into an off-canvas hamburger menu on mobile.
 - Conditionally displays user info/nav for authenticated users or login/register links.
 -->
 <aside class="sidebar" th:fragment="sidebar">
@@ -23,8 +24,10 @@ Fragment Definition: sidebar
         </button>
         <!-- Mobile Nav Toggle (Hamburger/X, shown only on mobile) -->
         <button id="mobileNavToggle" class="sidebar-toggle mobile-toggle" title="Toggle Navigation">
-            <svg class="icon-open" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg> <!-- Hamburger -->
-            <svg class="icon-collapsed" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg> <!-- X icon -->
+            <!-- Hamburger SVG -->
+            <svg class="icon-open" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+            <!-- X icon SVG -->
+            <svg class="icon-collapsed" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
         </button>
     </div>
 
@@ -33,12 +36,15 @@ Fragment Definition: sidebar
         <!-- Authenticated User Content -->
         <div sec:authorize="isAuthenticated()" class="sidebar-content authenticated">
             <div class="user-profile">
-                <div class="user-avatar" th:text="${userInitial}">U</div>
-                <!-- User details shown in dropdown -->
+                <div class="user-avatar" th:text="${userInitial ?: 'U'}">U</div>
+                <!-- User details shown in sidebar/dropdown -->
                 <div class="user-details">
-                    <span class="user-name" th:text="${userFullName}">User Name</span>
-                    <form id="logout-form" th:action="@{/logout}" method="post" style="display: none;"></form>
-                    <!-- Standard logout button, visibility controlled by CSS -->
+                    <span class="user-name" th:text="${userFullName ?: 'User Name'}">User Name</span>
+                    <form id="logout-form" th:action="@{/logout}" method="post" style="display: none;">
+                         <!-- CSRF Token for logout -->
+                         <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+                    </form>
+                    <!-- Standard logout button, triggers modal -->
                     <button type="button" class="logout-btn-sidebar" id="logout-button">Logout</button>
                 </div>
             </div>
@@ -60,7 +66,6 @@ Fragment Definition: sidebar
                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
                    <span>About</span>
                 </a>
-                <!-- Removed mobile-specific logout button -->
             </nav>
         </div>
 
@@ -81,7 +86,7 @@ Fragment Definition: sidebar
 
 </aside>
 
-<!-- Logout Confirmation Modal (No changes) -->
+<!-- Logout Confirmation Modal (Includes CSRF token if needed within the form submission logic) -->
 <div id="logout-modal" class="modal-overlay" th:fragment="logout-modal">
     <div class="modal-content" style="max-width: 400px;">
         <div class="modal-header">
@@ -100,4 +105,3 @@ Fragment Definition: sidebar
 
 </body>
 </html>
-
