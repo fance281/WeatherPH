@@ -2,7 +2,6 @@ package weatherPhApplication.java.service;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
@@ -13,33 +12,33 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-/**
- * Service responsible for sending emails using the Brevo (Sendinblue) REST API.
- * This approach bypasses SMTP restrictions imposed by hosting providers like Render.
- */
 @Service
 public class EmailService {
 
     private static final Logger logger = LoggerFactory.getLogger(EmailService.class);
 
-    @Autowired
-    private RestTemplate restTemplate;
+    // Make the dependency final
+    private final RestTemplate restTemplate;
 
     @Value("${brevo.api.url}")
     private String brevoApiUrl;
 
     @Value("${brevo.api.key}")
     private String brevoApiKey;
-    
+
     @Value("${brevo.sender.email}")
     private String senderEmail;
 
     @Value("${brevo.sender.name}")
     private String senderName;
 
-    /**
-     * Core logic to send an email using Brevo's Transactional Email API (POST /v3/smtp/email).
-     */
+    // Use constructor injection
+    // @Autowired // This is often optional on constructors in recent Spring versions
+    public EmailService(RestTemplate restTemplate) {
+        this.restTemplate = restTemplate;
+    }
+
+    // ... rest of your sendApiEmail, sendVerificationEmail, sendPasswordResetEmail methods ...
     private void sendApiEmail(String toEmail, String subject, String body) {
         try {
             // 1. Set API Headers
@@ -54,21 +53,20 @@ public class EmailService {
             sender.put("name", senderName);
 
             Map<String, String> recipient = Map.of("email", toEmail);
-            
+
             // 3. Construct the full JSON payload
             Map<String, Object> payload = Map.of(
                 "sender", sender,
                 "to", List.of(recipient),
                 "subject", subject,
-                // Brevo API prefers HTML content. We convert newlines to <br> tags.
-                "htmlContent", body.replace("\n", "<br>") 
+                "htmlContent", body.replace("\n", "<br>")
             );
 
             HttpEntity<Map<String, Object>> request = new HttpEntity<>(payload, headers);
 
             logger.info("Attempting to send email via Brevo API to: {}", toEmail);
-            
-            // 4. Send the Request
+
+            // 4. Send the Request (Uses the injected restTemplate)
             ResponseEntity<String> response = restTemplate.exchange(
                 brevoApiUrl,
                 HttpMethod.POST,
@@ -85,7 +83,6 @@ public class EmailService {
 
         } catch (Exception e) {
             logger.error("Failed to send email to: {}. Error: {}", toEmail, e.getMessage());
-            // Re-throw the exception to be handled by the calling controller/service
             throw new RuntimeException("Email sending failed via Brevo API", e);
         }
     }
