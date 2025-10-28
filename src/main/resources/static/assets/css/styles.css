@@ -163,9 +163,9 @@ main.container, main.auth-container, .dashboard-container { flex: 1; }
     flex-shrink: 0;
 }
 
-/* Hide mobile toggle on desktop */
-.mobile-header { display: none; } /* Hide mobile header on desktop */
-.mobile-toggle { display: none; }
+/* Hide mobile structures on desktop */
+.mobile-header { display: none !important; } /* *** IMPORTANT: Hide mobile header on desktop *** */
+.mobile-toggle { display: none !important; } /* *** IMPORTANT: Hide mobile toggle on desktop *** */
 /* Show desktop toggle */
 .desktop-toggle { display: flex; }
 
@@ -237,7 +237,7 @@ main.container, main.auth-container, .dashboard-container { flex: 1; }
     position: relative; /* Needed for potential header overlap */
 }
 
-/* Header within Main Content (was .main-header) */
+/* Header within Main Content */
 .main-content-header {
     display: flex;
     justify-content: space-between;
@@ -249,7 +249,7 @@ main.container, main.auth-container, .dashboard-container { flex: 1; }
     left: var(--sidebar-width-expanded); /* Start aligned with sidebar (use variable) */
     right: 0; /* Stretch to right edge */
     height: var(--header-height); /* Match brand height */
-    background-color: var(--bg); /* Match body background */
+    background-color: var(--bg); /* **** Use main background color **** */
     padding: 0 30px; /* Match main content padding */
     z-index: 50; /* Above main content scroll, below sidebar */
     border-bottom: 1px solid var(--border-color);
@@ -278,7 +278,14 @@ main.container, main.auth-container, .dashboard-container { flex: 1; }
 .mapboxgl-ctrl-geocoder--icon-close:hover { color: #fff !important; }
 .mapboxgl-ctrl-geocoder--icon-search { top: 12px !important; left: 12px !important; width: 20px !important; height: 20px !important; }
 .mapboxgl-ctrl-geocoder--input { padding-left: 40px !important; }
-.mapboxgl-ctrl-geocoder .suggestions { background-color: #ffffff !important; border-radius: 10px !important; border: none !important; box-shadow: 0 10px 20px rgba(0,0,0,0.2) !important; overflow: hidden; z-index: 11; /* Ensure suggestions are above map */ }
+.mapboxgl-ctrl-geocoder .suggestions {
+    background-color: #ffffff !important;
+    border-radius: 10px !important;
+    border: none !important;
+    box-shadow: 0 10px 20px rgba(0,0,0,0.2) !important;
+    overflow: hidden;
+    z-index: 1001 !important; /* *** INCREASED Z-INDEX *** */
+}
 .mapboxgl-ctrl-geocoder--suggestion { padding: 12px 15px !important; cursor: pointer !important; border-bottom: 1px solid #eee; }
 .mapboxgl-ctrl-geocoder--suggestion:last-child { border-bottom: none; }
 .mapboxgl-ctrl-geocoder--suggestion--active > a, .mapboxgl-ctrl-geocoder--suggestion:hover { background-color: #f0f0f0 !important; }
@@ -521,7 +528,7 @@ main.container, main.auth-container, .dashboard-container { flex: 1; }
 
     /* --- Mobile Top Header --- */
      .mobile-header {
-        display: flex; /* Show the mobile header */
+        display: flex !important; /* *** IMPORTANT: Ensure mobile header is shown *** */
         align-items: center;
         justify-content: space-between;
         padding: 0 15px;
@@ -536,12 +543,14 @@ main.container, main.auth-container, .dashboard-container { flex: 1; }
     }
      .mobile-header .brand-info { display: flex; align-items: center; gap: 10px; }
      .mobile-header .brand-name { display: inline-block !important; }
+     .mobile-header .mobile-toggle { display: flex !important; } /* Ensure hamburger is shown */
+
 
     /* --- Mobile Sidebar Styles --- */
     .sidebar {
         position: fixed;
         left: 0;
-        top: 0;
+        top: 0; /* Align with top */
         height: 100%;
         width: var(--sidebar-width-expanded); /* Use variable */
         z-index: 1000;
@@ -571,13 +580,11 @@ main.container, main.auth-container, .dashboard-container { flex: 1; }
 
 
     /* Toggle button visibility */
-    .desktop-toggle { display: none; }
-    /* Mobile toggle in the fixed header */
-    .mobile-header .mobile-toggle { display: flex; z-index: 1001; }
+    .desktop-toggle { display: none !important; } /* Hide desktop toggle */
     /* Mobile toggle (X) inside the sidebar */
-    .sidebar .mobile-toggle { display: flex; }
-    .sidebar .mobile-toggle .icon-open { display: none; }
-    .sidebar .mobile-toggle .icon-collapsed { display: block; }
+    .sidebar .mobile-toggle { display: flex !important; } /* Ensure 'X' is shown */
+    .sidebar .mobile-toggle .icon-open { display: none; } /* Hide hamburger in sidebar */
+    .sidebar .mobile-toggle .icon-collapsed { display: block; } /* Show 'X' in sidebar */
 
 
     /* --- Main Content Adjustments --- */
@@ -586,7 +593,7 @@ main.container, main.auth-container, .dashboard-container { flex: 1; }
         margin-left: 0;
         overflow-y: visible;
     }
-    .main-content-header {
+    .main-content-header { /* Revert header to static flow on mobile */
         position: static;
         height: auto;
         padding: 0;
@@ -597,6 +604,7 @@ main.container, main.auth-container, .dashboard-container { flex: 1; }
         gap: 15px;
         left: auto;
         transition: none;
+        background-color: transparent; /* Remove fixed background */
     }
     .location-display { order: 1; }
     .search-container { order: 2; width: 100%; }
@@ -610,7 +618,7 @@ main.container, main.auth-container, .dashboard-container { flex: 1; }
     }
     .user-profile { justify-content: flex-start; display: flex !important; }
     .user-profile .user-details { display: flex !important; }
-    .main-nav { margin-top: 0; /* Remove margin-top: auto */ } /* Allow nav to sit below profile */
+    .main-nav { margin-top: 0; } /* Allow nav to sit below profile */
     .nav-item { justify-content: flex-start; display: flex !important; }
     .nav-item span { display: inline !important; }
 
