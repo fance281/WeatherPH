@@ -1,34 +1,58 @@
 document.addEventListener('DOMContentLoaded', function () {
     // --- Sidebar Toggle Functionality ---
-    const sidebarToggle = document.getElementById('sidebarToggle');
+    const sidebarToggle = document.getElementById('sidebarToggle'); // Desktop toggle
+    const mobileNavToggle = document.getElementById('mobileNavToggle'); // Mobile toggle
+    const sidebar = document.querySelector('.sidebar');
     const dashboardContainer = document.querySelector('.dashboard-container');
 
-    if (sidebarToggle && dashboardContainer) {
-        // Function to apply the saved state
+    // --- Desktop Sidebar Collapse ---
+    if (sidebarToggle && dashboardContainer && sidebar) {
         const applySidebarState = () => {
-            if (localStorage.getItem('sidebarCollapsed') === 'true') {
-                dashboardContainer.classList.add('sidebar-collapsed');
+            // Only apply collapse on wider screens where the desktop toggle is visible
+            if (window.innerWidth > 992) {
+                if (localStorage.getItem('sidebarCollapsed') === 'true') {
+                    dashboardContainer.classList.add('sidebar-collapsed');
+                } else {
+                    dashboardContainer.classList.remove('sidebar-collapsed');
+                }
             } else {
+                // Ensure desktop collapse class is removed on smaller screens
                 dashboardContainer.classList.remove('sidebar-collapsed');
             }
         };
 
-        // Apply state on page load
-        applySidebarState();
+        applySidebarState(); // Apply state on load
 
-        // Add click event listener
         sidebarToggle.addEventListener('click', () => {
-            dashboardContainer.classList.toggle('sidebar-collapsed');
-            const isCollapsed = dashboardContainer.classList.contains('sidebar-collapsed');
-            localStorage.setItem('sidebarCollapsed', isCollapsed);
-            
-            // Dispatch a resize event to make components like the map aware of the size change
-            // A short delay can help ensure the CSS transition has started
-            setTimeout(() => {
-                window.dispatchEvent(new Event('resize'));
-            }, 150);
+            if (window.innerWidth > 992) { // Only toggle if desktop toggle is active
+                dashboardContainer.classList.toggle('sidebar-collapsed');
+                const isCollapsed = dashboardContainer.classList.contains('sidebar-collapsed');
+                localStorage.setItem('sidebarCollapsed', isCollapsed);
+                setTimeout(() => window.dispatchEvent(new Event('resize')), 150);
+            }
+        });
+
+        // Re-apply state on resize if switching between mobile/desktop view
+        window.addEventListener('resize', applySidebarState);
+    }
+
+    // --- Mobile Navigation Toggle ---
+    if (mobileNavToggle && sidebar) {
+        mobileNavToggle.addEventListener('click', () => {
+            sidebar.classList.toggle('mobile-nav-open');
+        });
+
+        // Close mobile nav if user clicks outside of it (optional)
+        document.addEventListener('click', (event) => {
+            const isClickInsideSidebar = sidebar.contains(event.target);
+            const isClickOnToggle = mobileNavToggle.contains(event.target);
+
+            if (!isClickInsideSidebar && !isClickOnToggle && sidebar.classList.contains('mobile-nav-open')) {
+                 sidebar.classList.remove('mobile-nav-open');
+            }
         });
     }
+
 
     // --- Logout Confirmation Modal ---
     const logoutButton = document.getElementById('logout-button');
@@ -45,10 +69,18 @@ document.addEventListener('DOMContentLoaded', function () {
 
         const hideLogoutModal = () => {
             if(logoutModal) logoutModal.style.display = 'none';
+            // Also close the mobile nav if open
+            if (sidebar && sidebar.classList.contains('mobile-nav-open')) {
+                sidebar.classList.remove('mobile-nav-open');
+            }
         };
 
+        // Note: Logout button might be inside the collapsible menu now
+        // We might need event delegation if the button isn't always present
+        // For simplicity, assuming it's always rendered for now.
+        // If issues arise, querySelector inside the sidebar content wrapper.
         logoutButton.addEventListener('click', showLogoutModal);
-        
+
         if(logoutCancelBtn) logoutCancelBtn.addEventListener('click', hideLogoutModal);
         if(logoutCancelClose) logoutCancelClose.addEventListener('click', hideLogoutModal);
 
@@ -57,45 +89,52 @@ document.addEventListener('DOMContentLoaded', function () {
                 logoutForm.submit();
             });
         }
-        
+
         window.addEventListener('click', (event) => {
             if (event.target === logoutModal) {
                 hideLogoutModal();
             }
         });
     }
-    
-    // --- New Modal Logic for Login Success (FIXED CLOSE HANDLER) ---
+
+    // --- URL Param Modal Logic (Login Success, etc.) ---
     function checkUrlParamsForModals() {
         const urlParams = new URLSearchParams(window.location.search);
-        
-        // Handle Login Success Modal
-        if (urlParams.has('loginSuccess')) {
-            const modal = document.getElementById('login-success-modal');
-            const closeBtn = document.getElementById('close-login-success-btn');
-            
-            if (modal) {
-                // Show modal
-                modal.style.display = 'flex';
-                
-                const closeModal = () => {
-                    modal.style.display = 'none';
-                    // Clean URL to prevent modal from reappearing on refresh
-                    urlParams.delete('loginSuccess');
-                    window.history.replaceState({}, document.title, window.location.pathname + (urlParams.toString() ? '?' + urlParams.toString() : ''));
-                };
 
-                // CRITICAL FIX: Attach the event listener to the "Start Planning" button
-                if (closeBtn) closeBtn.addEventListener('click', closeModal); 
-                
-                // Also close if clicking outside the modal
-                window.addEventListener('click', (event) => {
-                    if (event.target === modal) closeModal();
-                });
+        // Function to handle showing/closing modals based on URL params
+        const setupModalFromUrl = (paramName, modalId, closeBtnId) => {
+             if (urlParams.has(paramName)) {
+                const modal = document.getElementById(modalId);
+                const closeBtn = document.getElementById(closeBtnId);
+
+                if (modal) {
+                    modal.style.display = 'flex'; // Show modal
+
+                    const closeModal = () => {
+                        modal.style.display = 'none';
+                        // Clean URL
+                        urlParams.delete(paramName);
+                        const newUrl = window.location.pathname + (urlParams.toString() ? '?' + urlParams.toString() : '');
+                        window.history.replaceState({}, document.title, newUrl);
+                    };
+
+                    if (closeBtn) closeBtn.addEventListener('click', closeModal);
+                    window.addEventListener('click', (event) => {
+                         if (event.target === modal) closeModal();
+                    });
+                }
             }
-        }
+        };
+
+        // Setup modals based on URL parameters
+        setupModalFromUrl('loginSuccess', 'login-success-modal', 'close-login-success-btn');
+        // Add similar calls for other modals triggered by URL params if needed
+        // e.g., setupModalFromUrl('verificationSent', 'verification-modal', 'close-verification-btn');
+        // e.g., setupModalFromUrl('passwordResetSuccess', 'password-reset-modal', 'close-reset-btn');
+        // e.g., setupModalFromUrl('logoutSuccess', 'logout-success-modal', 'close-logout-btn');
+
     }
-    
+
     // Run modal checks immediately
     checkUrlParamsForModals();
 });
