@@ -10,6 +10,9 @@
   --danger: #e53e3e;
   --shadow: 0 10px 30px rgba(0,0,0,0.3);
   --border-color: rgba(255, 255, 255, 0.08);
+  --sidebar-width-expanded: 250px; /* Define sidebar width variable */
+  --sidebar-width-collapsed: 80px;  /* Define collapsed width variable */
+  --header-height: 60px; /* Define header height variable */
 }
 
 *{ box-sizing: border-box; }
@@ -46,7 +49,7 @@ main.container, main.auth-container, .dashboard-container { flex: 1; }
     border-bottom: 1px solid var(--border-color);
     margin-bottom: 20px;
     position: relative; /* Keep relative for z-index context if needed */
-    height: 60px; /* Give brand area a fixed height for consistency */
+    height: var(--header-height); /* Use variable */
     flex-shrink: 0; /* Prevent brand area from shrinking */
 }
 .logo{ font-size: 20px; color: var(--accent); }
@@ -130,7 +133,7 @@ main.container, main.auth-container, .dashboard-container { flex: 1; }
 
 /* Default Sidebar styles (Desktop) */
 .sidebar {
-    width: 250px;
+    width: var(--sidebar-width-expanded); /* Use variable */
     flex-shrink: 0;
     background-color: var(--bg-alt);
     padding: 0 20px 20px; /* Remove top padding, handled by brand */
@@ -149,18 +152,19 @@ main.container, main.auth-container, .dashboard-container { flex: 1; }
     margin: 0; /* Reset margin */
     border-bottom: 1px solid var(--border-color);
     background-color: var(--bg-alt); /* Ensure background */
-    height: 60px; /* Match mobile fixed header height */
+    height: var(--header-height); /* Match mobile fixed header height */
     display: flex;
     align-items: center;
     padding-left: 20px; /* Align with sidebar content padding */
     padding-right: 15px; /* Space for toggle */
     width: 100%;
-    position: relative; /* Or sticky if needed */
+    position: relative; /* Keep in flow for desktop */
     z-index: 101; /* Above sidebar content */
     flex-shrink: 0;
 }
 
 /* Hide mobile toggle on desktop */
+.mobile-header { display: none; } /* Hide mobile header on desktop */
 .mobile-toggle { display: none; }
 /* Show desktop toggle */
 .desktop-toggle { display: flex; }
@@ -183,7 +187,7 @@ main.container, main.auth-container, .dashboard-container { flex: 1; }
 
 
 /* Sidebar Collapsed styles (Desktop) */
-.dashboard-container.sidebar-collapsed .sidebar { width: 80px; padding-left: 10px; padding-right: 10px; }
+.dashboard-container.sidebar-collapsed .sidebar { width: var(--sidebar-width-collapsed); padding-left: 10px; padding-right: 10px; }
 .dashboard-container.sidebar-collapsed .sidebar .brand { padding-left: 0; padding-right: 0; justify-content: center; }
 .dashboard-container.sidebar-collapsed .brand .brand-name { display: none; } /* Hide only name */
 .dashboard-container.sidebar-collapsed .brand .brand-info { justify-content: center; } /* Center logo */
@@ -211,22 +215,22 @@ main.container, main.auth-container, .dashboard-container { flex: 1; }
 
 .sidebar .brand-info { display: flex; align-items: center; gap: 10px; flex-grow: 1; } /* Group logo and name */
 
-.user-profile { display: flex; align-items: center; gap: 15px; margin-bottom: 30px; }
-.user-profile .user-avatar { width: 50px; height: 50px; font-size: 20px; border-radius: 50%; background: var(--accent); color: var(--bg); display: flex; align-items: center; justify-content: center; font-weight: 700; flex-shrink: 0; }
+.user-profile { display: flex; align-items: center; gap: 15px; margin-bottom: 20px; /* Reduced margin */ }
+.user-profile .user-avatar { width: 40px; height: 40px; font-size: 18px; /* Slightly smaller */ border-radius: 50%; background: var(--accent); color: var(--bg); display: flex; align-items: center; justify-content: center; font-weight: 700; flex-shrink: 0; }
 .user-details { display: flex; flex-direction: column; }
-.user-details .user-name { font-weight: 600; font-size: 16px; white-space: nowrap; }
-.logout-btn-sidebar { background: none; border: none; color: var(--muted); cursor: pointer; padding: 4px 0; font-size: 12px; text-align: left; transition: color 0.2s; }
+.user-details .user-name { font-weight: 600; font-size: 14px; white-space: nowrap; } /* Slightly smaller */
+.logout-btn-sidebar { background: none; border: none; color: var(--muted); cursor: pointer; padding: 2px 0; font-size: 12px; text-align: left; transition: color 0.2s; } /* Reduced padding */
 .logout-btn-sidebar:hover { color: #ff8a80; }
 
-.main-nav { display: flex; flex-direction: column; gap: 10px; margin-top: auto; /* Push nav down in sidebar */ }
-.nav-item { display: flex; align-items: center; gap: 12px; padding: 12px 15px; border-radius: 8px; color: var(--muted); text-decoration: none; transition: background-color 0.2s, color 0.2s; white-space: nowrap; }
-.nav-item svg { flex-shrink: 0; }
+.main-nav { display: flex; flex-direction: column; gap: 8px; /* Reduced gap */ /* REMOVED margin-top: auto; */ }
+.nav-item { display: flex; align-items: center; gap: 12px; padding: 10px 15px; /* Reduced padding */ border-radius: 8px; color: var(--muted); text-decoration: none; transition: background-color 0.2s, color 0.2s; white-space: nowrap; }
+.nav-item svg { flex-shrink: 0; width: 20px; height: 20px; /* Slightly smaller icons */ }
 .nav-item:hover, .nav-item.active { background-color: rgba(91,192,190,0.15); color: var(--text); }
 
 /* Main Content Area */
 .main-content {
     flex-grow: 1;
-    padding: 70px 30px 30px; /* Increased top padding to account for fixed header */
+    padding: var(--header-height) 30px 30px; /* Adjusted top padding */
     overflow-y: auto;
     display: flex;
     flex-direction: column;
@@ -242,9 +246,9 @@ main.container, main.auth-container, .dashboard-container { flex: 1; }
     flex-shrink: 0;
     position: fixed; /* Make header fixed */
     top: 0;
-    left: 250px; /* Start aligned with sidebar */
+    left: var(--sidebar-width-expanded); /* Start aligned with sidebar (use variable) */
     right: 0; /* Stretch to right edge */
-    height: 60px; /* Match brand height */
+    height: var(--header-height); /* Match brand height */
     background-color: var(--bg); /* Match body background */
     padding: 0 30px; /* Match main content padding */
     z-index: 50; /* Above main content scroll, below sidebar */
@@ -253,7 +257,7 @@ main.container, main.auth-container, .dashboard-container { flex: 1; }
 }
 /* Adjust fixed header position when sidebar is collapsed */
 .dashboard-container.sidebar-collapsed .main-content-header {
-    left: 80px; /* Match collapsed sidebar width */
+    left: var(--sidebar-width-collapsed); /* Match collapsed sidebar width (use variable) */
 }
 
 
@@ -368,9 +372,9 @@ main.container, main.auth-container, .dashboard-container { flex: 1; }
 
 
 /* --- AUTHENTICATION PAGE STYLES --- */
-.auth-body { background: linear-gradient(45deg, #0b132b, #1c2541, #243b55); background-size: 400% 400%; animation: gradientBG 15s ease infinite; position: relative; overflow-x: hidden; /* Allow vertical scroll if needed */ }
-@keyframes gradientBG { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
-.auth-container { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; padding: 40px 20px; /* Add more padding top/bottom */ z-index: 1; position: relative; }
+/* Auth styles remain the same */
+.auth-body { background: linear-gradient(45deg, #0b132b, #1c2541, #243b55); background-size: 400% 400%; animation: gradientBG 15s ease infinite; position: relative; overflow-x: hidden; }
+.auth-container { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; padding: 40px 20px; z-index: 1; position: relative; }
 .auth-card { background: var(--bg-alt); border: 1px solid var(--border-color); border-radius: 16px; padding: 32px 40px; width: 100%; max-width: 420px; box-shadow: var(--shadow); animation: fadeIn 0.5s ease-out; }
 @keyframes fadeIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
 .auth-header { text-align: center; margin-bottom: 24px; }
@@ -383,7 +387,7 @@ main.container, main.auth-container, .dashboard-container { flex: 1; }
 .auth-form .form-group:nth-child(2) { animation-delay: 0.2s; }
 .auth-form .form-group:nth-child(3) { animation-delay: 0.3s; }
 .auth-form .form-group:nth-child(4) { animation-delay: 0.4s; }
-.auth-form .form-group:nth-child(5) { animation-delay: 0.5s; } /* For confirm password */
+.auth-form .form-group:nth-child(5) { animation-delay: 0.5s; }
 @keyframes slideInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
 .auth-form .btn { padding: 12px; font-size: 16px; margin-top: 8px; transition: transform 0.2s, box-shadow 0.2s; }
 .auth-form .btn:hover { transform: translateY(-3px); box-shadow: 0 8px 15px rgba(91, 192, 190, 0.2); }
@@ -394,48 +398,31 @@ main.container, main.auth-container, .dashboard-container { flex: 1; }
 .privacy-agreement { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--muted); }
 .privacy-agreement a { color: var(--accent); text-decoration: none; }
 .privacy-agreement input[type="checkbox"] { accent-color: var(--accent); }
-
-.auth-brand { /* Position brand logo top-left on auth pages */
-    position: absolute; top: 20px; left: 20px;
-    display: flex; align-items: center; gap: 10px; z-index: 2;
-}
+.auth-brand { position: absolute; top: 20px; left: 20px; display: flex; align-items: center; gap: 10px; z-index: 2; }
 .auth-brand .logo { font-size: 24px; color: var(--accent); }
 .auth-brand .brand-name { font-size: 20px; font-weight: 700; color: var(--text); }
 
 
 /* --- MODAL STYLES --- */
-.modal-overlay {
-    display: none; position: fixed; z-index: 1001;
-    left: 0; top: 0; width: 100%; height: 100%;
-    overflow: auto; background-color: rgba(0,0,0,0.7);
-    backdrop-filter: blur(5px); align-items: center; justify-content: center;
-}
-.modal-content {
-    background-color: #1c2541; margin: auto; padding: 25px;
-    border: 1px solid #3a506b; width: 90%; max-width: 550px;
-    border-radius: 16px; position: relative; z-index: 1002;
-    box-shadow: 0 10px 40px rgba(0,0,0,0.5); animation: fadeIn 0.3s ease-out;
-}
+/* Modal styles remain the same */
+.modal-overlay { display: none; position: fixed; z-index: 1001; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.7); backdrop-filter: blur(5px); align-items: center; justify-content: center; }
+.modal-content { background-color: #1c2541; margin: auto; padding: 25px; border: 1px solid #3a506b; width: 90%; max-width: 550px; border-radius: 16px; position: relative; z-index: 1002; box-shadow: 0 10px 40px rgba(0,0,0,0.5); animation: fadeIn 0.3s ease-out; }
 .modal-header { padding-bottom: 15px; border-bottom: 1px solid #2a3a5e; margin-bottom: 20px; }
 .modal-header h2 { margin: 0; color: #e6f1ff; font-size: 20px; }
 .close-button { color: #aaa; float: right; font-size: 32px; line-height: 1; font-weight: bold; position: absolute; top: 15px; right: 25px; }
 .close-button:hover, .close-button:focus { color: #fff; text-decoration: none; cursor: pointer; }
 .modal-body { display: flex; flex-direction: column; gap: 15px; }
 .modal-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px; }
-
 .success-icon, .error-icon { margin-bottom: 16px; animation: popIn 0.5s cubic-bezier(0.68, -0.55, 0.27, 1.55); display: inline-block; }
 .success-icon { color: var(--accent); }
 .error-icon { color: var(--danger); }
 @keyframes popIn { 0% { transform: scale(0); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
-
 #verification-modal .modal-body p { font-size: 15px; line-height: 1.6; color: var(--muted); }
-
 #privacy-modal .modal-body { max-height: 300px; overflow-y: auto; padding-right: 15px; }
 #privacy-modal h4 { margin-top: 1em; margin-bottom: 0.5em; color: var(--accent); }
 #privacy-modal p, #privacy-modal ul { font-size: 14px; line-height: 1.6; color: var(--muted); }
 #privacy-modal ul { padding-left: 20px; }
 #privacy-modal li { margin-bottom: 8px; }
-
 #advisory-modal .modal-body { display: flex; flex-direction: column; gap: 20px; }
 #advisory-modal .modal-header h2 { font-size: 22px; }
 #advisory-modal .modal-header h2 span { font-weight: 600; color: var(--accent); }
@@ -445,6 +432,7 @@ main.container, main.auth-container, .dashboard-container { flex: 1; }
 
 
 /* --- BACKGROUND ICONS --- */
+/* Background icon styles remain the same */
 .background-icons { position: absolute; top: 0; left: 0; width: 100%; height: 100%; overflow: hidden; z-index: 0; pointer-events: none; }
 .background-icons .icon { position: absolute; font-size: 3rem; opacity: 0.1; animation: float 10s ease-in-out infinite; }
 .background-icons .icon:nth-child(1) { top: 10%; left: 15%; animation-duration: 12s; }
@@ -457,6 +445,7 @@ main.container, main.auth-container, .dashboard-container { flex: 1; }
 
 
 /* --- Route Advisory Page Specific Styles --- */
+/* Route advisory styles remain the same */
 .route-form-section { background: var(--card); padding: 20px; border-radius: 16px; margin-bottom: 20px; }
 .route-form { display: flex; flex-direction: column; gap: 15px; }
 .route-form .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
@@ -475,9 +464,10 @@ main.container, main.auth-container, .dashboard-container { flex: 1; }
 .weather-grid b { font-size: 16px; }
 .weather-sun-times { display: flex; justify-content: space-around; font-size: 14px; color: var(--muted); }
 .geocoder-container .mapboxgl-ctrl-geocoder { box-shadow: none !important; }
-.results-action { text-align: center; margin-top: 15px; } /* Reduced top margin slightly */
+.results-action { text-align: center; margin-top: 15px; }
 
 /* --- Advisories Page Specific Styles --- */
+/* Advisories styles remain the same */
 .card-body ul { list-style-type: none; padding-left: 0; margin: 0; }
 .card-body li { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 12px; color: var(--muted); }
 .card-body li .icon { flex-shrink: 0; margin-top: 3px; color: var(--accent); }
@@ -488,6 +478,7 @@ main.container, main.auth-container, .dashboard-container { flex: 1; }
 
 
 /* --- About Page Specific Styles --- */
+/* About styles remain the same */
 #about-current-weather-card { background: linear-gradient(145deg, var(--card), var(--bg-alt)); text-align: center; }
 #about-current-weather { padding: 15px; color: var(--text); }
 .mw-header { font-size: 16px; color: var(--muted); margin-bottom: 15px; }
@@ -504,7 +495,17 @@ main.container, main.auth-container, .dashboard-container { flex: 1; }
 /* === GENERAL RESPONSIVE ADJUSTMENTS (Larger Breakpoints) === */
 @media (max-width: 1200px) {
     .dashboard-grid { grid-template-columns: 1fr; height: auto; }
-    .main-content-header { flex-direction: column; gap: 15px; align-items: flex-start; height: auto; padding-top: 10px; padding-bottom: 10px; position: static; /* Unfix header */ }
+    .main-content-header {
+        position: static; /* Unfix header on medium screens */
+        height: auto;
+        padding: 10px 0; /* Adjust padding */
+        left: auto;
+        flex-direction: column; /* Stack header items */
+        gap: 15px;
+        align-items: flex-start;
+        border-bottom: none; /* Remove border if unsticky */
+        margin-bottom: 15px; /* Add margin below */
+    }
     .main-content { padding-top: 15px; } /* Reset padding */
     .search-container { width: 100%; }
     .geocoder { width: 100%; }
@@ -518,13 +519,13 @@ main.container, main.auth-container, .dashboard-container { flex: 1; }
     /* Main container stacks vertically */
     .dashboard-container { flex-direction: column; height: auto; }
 
-    /* --- Mobile Top Header (replaces sidebar brand area for toggle) --- */
+    /* --- Mobile Top Header --- */
      .mobile-header {
-        display: flex; /* Changed from none */
+        display: flex; /* Show the mobile header */
         align-items: center;
         justify-content: space-between;
         padding: 0 15px;
-        height: 60px;
+        height: var(--header-height); /* Use variable */
         background-color: var(--bg-alt);
         border-bottom: 1px solid var(--border-color);
         position: fixed; /* Fixed position at the top */
@@ -533,149 +534,122 @@ main.container, main.auth-container, .dashboard-container { flex: 1; }
         right: 0;
         z-index: 998; /* Below sidebar overlay, above main content */
     }
-     /* Ensure brand info within mobile header is visible */
-    .mobile-header .brand-info { display: flex; align-items: center; gap: 10px; }
-    .mobile-header .brand-name { display: inline-block !important; }
+     .mobile-header .brand-info { display: flex; align-items: center; gap: 10px; }
+     .mobile-header .brand-name { display: inline-block !important; }
 
     /* --- Mobile Sidebar Styles --- */
     .sidebar {
-        position: fixed; /* Fixed position for overlay */
+        position: fixed;
         left: 0;
-        top: 0; /* Align with top */
+        top: 0;
         height: 100%;
-        width: 250px; /* Desired width when open */
-        z-index: 1000; /* Above content and overlay */
-        transform: translateX(-100%); /* Hidden off-screen by default */
-        transition: transform 0.3s ease; /* Slide transition */
-        border-right: 1px solid var(--border-color); /* Add border */
-        overflow-y: auto; /* Allow scrolling within sidebar */
-        padding: 0 20px 20px; /* Remove top padding */
-        background-color: var(--bg-alt); /* Ensure background */
+        width: var(--sidebar-width-expanded); /* Use variable */
+        z-index: 1000;
+        transform: translateX(-100%);
+        transition: transform 0.3s ease;
+        border-right: 1px solid var(--border-color);
+        overflow-y: auto;
+        padding: 0 20px 20px;
+        background-color: var(--bg-alt);
     }
-
-    /* Class to show the mobile sidebar */
-    .sidebar.mobile-nav-open {
-        transform: translateX(0); /* Slide in */
-    }
-
-     /* Sidebar Brand Area - Adjusted for fixed height and content */
+    .sidebar.mobile-nav-open { transform: translateX(0); }
     .sidebar .brand {
-        height: 60px; /* Match mobile fixed header height */
+        height: var(--header-height);
         display: flex;
         align-items: center;
-        padding: 0; /* Remove internal padding */
-        margin-bottom: 0; /* Remove bottom margin */
+        padding: 0;
+        margin-bottom: 0;
         border-bottom: 1px solid var(--border-color);
-        background-color: var(--bg-alt); /* Ensure background consistency */
-        position: sticky; /* Keep brand visible when scrolling sidebar content */
-        top: 0; /* Stick to the top of the sidebar scroll area */
-        z-index: 101; /* Above sidebar content */
-        justify-content: space-between; /* Space between logo and close (X) button */
-        padding-right: 15px; /* Space for the 'X' toggle */
+        background-color: var(--bg-alt);
+        position: sticky; /* Keep brand visible */
+        top: 0;
+        z-index: 101;
+        justify-content: space-between;
+        padding-right: 15px; /* Space for 'X' */
     }
-     .sidebar .brand .brand-info { padding-left: 20px; } /* Align logo with content */
+     .sidebar .brand .brand-info { padding-left: 20px; }
 
 
     /* Toggle button visibility */
-    .desktop-toggle { display: none; } /* Hide desktop toggle */
-    /* Mobile toggle is now in the mobile-header, but style the one in the sidebar to act as 'close' */
-    .sidebar .mobile-toggle { display: flex; } /* Show 'X' in sidebar */
-    .sidebar .mobile-toggle .icon-open { display: none; } /* Hide hamburger in sidebar */
-    .sidebar .mobile-toggle .icon-collapsed { display: block; } /* Show 'X' in sidebar */
+    .desktop-toggle { display: none; }
+    /* Mobile toggle in the fixed header */
+    .mobile-header .mobile-toggle { display: flex; z-index: 1001; }
+    /* Mobile toggle (X) inside the sidebar */
+    .sidebar .mobile-toggle { display: flex; }
+    .sidebar .mobile-toggle .icon-open { display: none; }
+    .sidebar .mobile-toggle .icon-collapsed { display: block; }
 
 
     /* --- Main Content Adjustments --- */
     .main-content {
-        padding: 75px 15px 15px; /* Adjust top padding for fixed mobile header */
-        margin-left: 0; /* No margin needed */
-        overflow-y: visible; /* Let content flow naturally */
+        padding: calc(var(--header-height) + 15px) 15px 15px; /* Adjust top padding for fixed mobile header */
+        margin-left: 0;
+        overflow-y: visible;
     }
-     /* Reset fixed header from desktop */
     .main-content-header {
         position: static;
         height: auto;
         padding: 0;
         border-bottom: none;
-        margin-bottom: 15px; /* Add some space below */
-        flex-direction: column; /* Stack location and search */
-        align-items: stretch; /* Stretch children full width */
+        margin-bottom: 15px;
+        flex-direction: column;
+        align-items: stretch;
         gap: 15px;
-        left: auto; /* Reset desktop positioning */
+        left: auto;
         transition: none;
     }
-    .location-display { order: 1; /* Show location first */ }
-    .search-container { order: 2; /* Show search second */ width: 100%; }
+    .location-display { order: 1; }
+    .search-container { order: 2; width: 100%; }
     .geocoder { width: 100%; }
 
 
-    /* Restore sidebar content layout for vertical display */
-    .sidebar-content-wrapper { padding-top: 20px; } /* Add padding below sticky brand */
+    /* Restore sidebar content layout */
+    .sidebar-content-wrapper { padding-top: 20px; }
     .sidebar-content-wrapper, .sidebar-content {
-        display: flex;
-        flex-direction: column;
-        opacity: 1;
-        flex-grow: 1;
+        display: flex; flex-direction: column; opacity: 1; flex-grow: 1;
     }
-
-    /* Ensure user profile and nav items are displayed correctly */
     .user-profile { justify-content: flex-start; display: flex !important; }
     .user-profile .user-details { display: flex !important; }
-    .main-nav { margin-top: auto; } /* Push nav to bottom */
+    .main-nav { margin-top: 0; /* Remove margin-top: auto */ } /* Allow nav to sit below profile */
     .nav-item { justify-content: flex-start; display: flex !important; }
-    .nav-item span { display: inline !important; } /* Show nav text */
+    .nav-item span { display: inline !important; }
+
 
     /* --- Overlay for Mobile Menu --- */
-    body.mobile-nav-active::after {
-        content: '';
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: rgba(0, 0, 0, 0.5);
-        z-index: 999; /* Below sidebar, above header+content */
-        opacity: 1;
-        visibility: visible;
-        transition: opacity 0.3s ease, visibility 0.3s ease;
-        pointer-events: auto; /* Make overlay clickable */
+    body.mobile-nav-active::after { /* Overlay styles */
+        content: ''; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+        background: rgba(0, 0, 0, 0.5); z-index: 999; opacity: 1; visibility: visible;
+        transition: opacity 0.3s ease, visibility 0.3s ease; pointer-events: auto;
     }
-    body:not(.mobile-nav-active)::after {
-         content: '';
-         position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-         background: rgba(0, 0, 0, 0.5); z-index: 999;
-         opacity: 0;
-         visibility: hidden;
-         transition: opacity 0.3s ease, visibility 0.3s ease;
-         pointer-events: none;
+    body:not(.mobile-nav-active)::after { /* Hidden overlay styles */
+         content: ''; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+         background: rgba(0, 0, 0, 0.5); z-index: 999; opacity: 0; visibility: hidden;
+         transition: opacity 0.3s ease, visibility 0.3s ease; pointer-events: none;
     }
 
 
     /* --- Override Desktop Collapse Styles on Mobile --- */
     .dashboard-container.sidebar-collapsed .sidebar {
-        width: 250px;
+        width: var(--sidebar-width-expanded); /* Use variable */
         padding: 0 20px 20px; /* Adjusted padding */
         transform: translateX(-100%);
     }
-    .dashboard-container.sidebar-collapsed .sidebar.mobile-nav-open {
-         transform: translateX(0);
-    }
+    .dashboard-container.sidebar-collapsed .sidebar.mobile-nav-open { transform: translateX(0); }
     .dashboard-container.sidebar-collapsed .nav-item,
     .dashboard-container.sidebar-collapsed .user-profile,
-    .dashboard-container.sidebar-collapsed .brand {
-        justify-content: flex-start;
-    }
-     .dashboard-container.sidebar-collapsed .sidebar .brand { padding-right: 15px; }
-     .dashboard-container.sidebar-collapsed .brand .brand-info { justify-content: flex-start; }
+    .dashboard-container.sidebar-collapsed .brand { justify-content: flex-start; }
+    .dashboard-container.sidebar-collapsed .sidebar .brand { padding-right: 15px; }
+    .dashboard-container.sidebar-collapsed .brand .brand-info { justify-content: flex-start; }
 
 
     /* Other Mobile Adjustments */
-    .cards { grid-template-columns: 1fr; } /* Stack cards */
-    .route-form .form-row { grid-template-columns: 1fr; } /* Stack route form inputs */
-    .route-form .btn { align-self: center; width: 80%; max-width: 300px; } /* Center route button */
+    .cards { grid-template-columns: 1fr; }
+    .route-form .form-row { grid-template-columns: 1fr; }
+    .route-form .btn { align-self: center; width: 80%; max-width: 300px; }
     .dashboard-grid { display: flex; flex-direction: column; flex-grow: 1; }
-    .grid-col-main, .grid-col-side { min-height: auto; } /* Remove min-height */
-    .map-container { min-height: 300px; height: 45vh; /* Give map a definite height */ flex-grow: 0; }
-    .forecast-section { height: auto; flex-grow: 1; /* Allow forecast to take remaining space */ }
+    .grid-col-main, .grid-col-side { min-height: auto; }
+    .map-container { min-height: 300px; height: 45vh; flex-grow: 0; }
+    .forecast-section { height: auto; flex-grow: 1; }
 }
 
 
@@ -689,21 +663,16 @@ main.container, main.auth-container, .dashboard-container { flex: 1; }
    .weather-extra-details { font-size: 13px; gap: 8px 12px; }
    .weather-icon-large { width: 60px; height: 60px; }
    .weather-temp-main span { font-size: 28px; }
-   .weather-grid { grid-template-columns: repeat(2, 1fr); } /* Adjust weather grid layout */
-   .weather-grid > div:last-child { grid-column: 1 / -1; } /* Center last item if odd number */
+   .weather-grid { grid-template-columns: repeat(2, 1fr); }
+   .weather-grid > div:last-child { grid-column: 1 / -1; }
    .signal-table th, .signal-table td { padding: 6px 8px; font-size: 13px; }
    .map-style-selector { padding: 3px; }
    .map-style-btn { padding: 3px 8px; font-size: 12px; }
-
-   /* Adjust About page cards stack */
-   .cards#about-cards {
-       grid-template-columns: 1fr;
-   }
+   .cards#about-cards { grid-template-columns: 1fr; }
 }
 
 
-/* === Responsive adjustments for Authentication Pages (Small Screens) === */
-@media (max-width: 480px) {
+@media (max-width: 480px) { /* Small mobile */
     .auth-card { padding: 24px 20px; max-width: 95%; }
     .auth-header h1 { font-size: 20px; }
     .auth-header p { font-size: 14px; }
@@ -714,20 +683,18 @@ main.container, main.auth-container, .dashboard-container { flex: 1; }
     .auth-brand .brand-name { font-size: 18px; }
     .modal-content { max-width: 90%; padding: 20px; }
 
-    /* Further reduce padding for main content on smallest screens */
-    .main-content { padding: 70px 10px 10px; } /* Adjust top padding for mobile header */
+    .main-content { padding: calc(var(--header-height) + 10px) 10px 10px; } /* Adjust top padding */
     .forecast-section { padding: 15px; }
     .current-weather-details { padding: 18px; }
-    .weather-extra-details { grid-template-columns: repeat(2, 1fr); } /* Stack extra details */
-    .weather-extra-details p:nth-child(5), .weather-extra-details p:nth-child(6) { grid-column: 1 / -1; } /* Center sunrise/sunset */
-    .main-content-header h2 { font-size: 18px; } /* Adjust font size */
-    .search-label { display: none; } /* Hide search label */
+    .weather-extra-details { grid-template-columns: repeat(2, 1fr); }
+    .weather-extra-details p:nth-child(5), .weather-extra-details p:nth-child(6) { grid-column: 1 / -1; }
+    .main-content-header h2 { font-size: 18px; }
+    .search-label { display: none; }
     .advisory-header h1 { font-size: 1.8em; margin-bottom: 15px; }
     .advisory-header p { font-size: 0.9em; }
     .signal-table th, .signal-table td { font-size: 12px; }
-    .route-form-section { padding: 15px; padding-bottom: 70px; /* Add padding below the form */}
+    .route-form-section { padding: 15px; padding-bottom: 70px; }
     .route-form .btn { width: 100%; }
-
-    .map-container { min-height: 250px; height: 40vh; /* Adjust map height slightly on smallest screens */ }
+    .map-container { min-height: 250px; height: 40vh; }
 }
 

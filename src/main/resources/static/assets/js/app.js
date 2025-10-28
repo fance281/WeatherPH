@@ -1,34 +1,43 @@
 document.addEventListener('DOMContentLoaded', function () {
-    // --- Sidebar/Top Bar Elements ---
-    const sidebarToggle = document.getElementById('sidebarToggle'); // Desktop toggle
-    const mobileNavToggle = document.getElementById('mobileNavToggle'); // Mobile toggle
+    // --- Elements ---
+    const sidebarToggle = document.getElementById('sidebarToggle'); // Desktop sidebar toggle (< >)
+    const mobileHeaderToggle = document.querySelector('.mobile-header .mobile-toggle'); // Hamburger in mobile header
+    const sidebarCloseToggle = document.querySelector('.sidebar .mobile-toggle'); // 'X' button inside the sidebar
     const sidebar = document.querySelector('.sidebar');
     const dashboardContainer = document.querySelector('.dashboard-container');
     const body = document.body;
+    const mainContentHeader = document.querySelector('.main-content-header'); // Desktop fixed header
 
     // --- Function to apply correct state based on window size ---
     const applySidebarState = () => {
         const isMobile = window.innerWidth <= 992;
 
         if (isMobile) {
-            // Mobile View: Remove desktop collapse class, ensure transform is ready for toggle
-            dashboardContainer.classList.remove('sidebar-collapsed');
-            // If sidebar isn't explicitly open via mobile toggle, ensure it's hidden
+            // Mobile View Setup
+            dashboardContainer.classList.remove('sidebar-collapsed'); // Remove desktop collapse
+            // Ensure sidebar starts hidden unless explicitly opened
             if (!sidebar.classList.contains('mobile-nav-open')) {
-                sidebar.style.transform = 'translateX(-100%)'; // Ensure hidden if not open
+                sidebar.style.transform = 'translateX(-100%)';
+            } else {
+                 sidebar.style.transform = 'translateX(0)'; // Ensure visible if class is present
             }
              body.classList.toggle('mobile-nav-active', sidebar.classList.contains('mobile-nav-open'));
-        } else {
-            // Desktop View: Remove mobile open class and overlay class, apply desktop collapse state
-            sidebar.classList.remove('mobile-nav-open');
-            body.classList.remove('mobile-nav-active');
-            sidebar.style.transform = 'translateX(0)'; // Ensure visible in desktop flow
+             // Ensure fixed header has correct left position (0 for mobile)
+             if(mainContentHeader) mainContentHeader.style.left = '0px';
 
-            // Apply desktop collapse state from localStorage
-            if (localStorage.getItem('sidebarCollapsed') === 'true') {
-                dashboardContainer.classList.add('sidebar-collapsed');
-            } else {
-                dashboardContainer.classList.remove('sidebar-collapsed');
+        } else {
+            // Desktop View Setup
+            sidebar.classList.remove('mobile-nav-open'); // Remove mobile class
+            body.classList.remove('mobile-nav-active'); // Remove overlay class
+            sidebar.style.transform = 'translateX(0)'; // Ensure sidebar is visible in flow
+
+            // Apply desktop collapse state
+            const isCollapsed = localStorage.getItem('sidebarCollapsed') === 'true';
+            dashboardContainer.classList.toggle('sidebar-collapsed', isCollapsed);
+
+             // Adjust fixed header position based on desktop sidebar state
+            if(mainContentHeader) {
+                mainContentHeader.style.left = isCollapsed ? 'var(--sidebar-width-collapsed)' : 'var(--sidebar-width-expanded)';
             }
         }
     };
@@ -37,47 +46,54 @@ document.addEventListener('DOMContentLoaded', function () {
     applySidebarState();
 
     // --- Desktop Sidebar Collapse Toggle ---
-    if (sidebarToggle && dashboardContainer) {
+    if (sidebarToggle && dashboardContainer && mainContentHeader) {
         sidebarToggle.addEventListener('click', () => {
-            // Only toggle if in desktop view
-            if (window.innerWidth > 992) {
+            if (window.innerWidth > 992) { // Only for desktop
                 dashboardContainer.classList.toggle('sidebar-collapsed');
                 const isCollapsed = dashboardContainer.classList.contains('sidebar-collapsed');
                 localStorage.setItem('sidebarCollapsed', isCollapsed);
-                // Trigger resize event slightly after transition starts for layout adjustments (e.g., map)
-                setTimeout(() => window.dispatchEvent(new Event('resize')), 50);
+                // Update header position immediately
+                mainContentHeader.style.left = isCollapsed ? 'var(--sidebar-width-collapsed)' : 'var(--sidebar-width-expanded)';
+                // Trigger resize for potential map adjustments after transition
+                setTimeout(() => window.dispatchEvent(new Event('resize')), 310); // Match transition duration
             }
         });
     }
 
-    // --- Mobile Navigation Toggle ---
-    if (mobileNavToggle && sidebar) {
-        mobileNavToggle.addEventListener('click', (event) => {
-            event.stopPropagation(); // Prevent click from immediately closing menu via document listener
-            sidebar.classList.toggle('mobile-nav-open');
-            body.classList.toggle('mobile-nav-active'); // Toggle body class for overlay
-
-            // Set transform based on state
-             if (sidebar.classList.contains('mobile-nav-open')) {
-                 sidebar.style.transform = 'translateX(0)';
-             } else {
-                 sidebar.style.transform = 'translateX(-100%)';
-             }
+    // --- Mobile Navigation Open Toggle (Hamburger) ---
+    if (mobileHeaderToggle && sidebar) {
+        mobileHeaderToggle.addEventListener('click', (event) => {
+            event.stopPropagation();
+            sidebar.classList.add('mobile-nav-open');
+            body.classList.add('mobile-nav-active');
+            sidebar.style.transform = 'translateX(0)'; // Slide in
         });
     }
 
+    // --- Mobile Navigation Close Toggle ('X' inside sidebar) ---
+     if (sidebarCloseToggle && sidebar) {
+        sidebarCloseToggle.addEventListener('click', (event) => {
+            event.stopPropagation();
+            sidebar.classList.remove('mobile-nav-open');
+            body.classList.remove('mobile-nav-active');
+            sidebar.style.transform = 'translateX(-100%)'; // Slide out
+        });
+    }
+
+
      // --- Close Mobile Nav on Outside Click/Overlay Click ---
     document.addEventListener('click', (event) => {
-        // Check if the click target is the overlay itself (::after pseudo-element is not directly targetable, so we check the body with the class)
         const isOverlayClick = body.classList.contains('mobile-nav-active') && event.target === body;
         const isClickInsideSidebar = sidebar && sidebar.contains(event.target);
-        const isMobileToggleClick = mobileNavToggle && mobileNavToggle.contains(event.target);
 
-        // Close only if the menu is open, and the click was outside the sidebar AND not on the toggle button
-        if (sidebar && sidebar.classList.contains('mobile-nav-open') && !isClickInsideSidebar && !isMobileToggleClick) {
-             sidebar.classList.remove('mobile-nav-open');
-             body.classList.remove('mobile-nav-active');
-             sidebar.style.transform = 'translateX(-100%)'; // Ensure it slides out
+        // Close if the menu is open AND (click is on overlay OR click is outside sidebar)
+        if (sidebar && sidebar.classList.contains('mobile-nav-open') && (isOverlayClick || !isClickInsideSidebar)) {
+            // Don't close if the click was on the header toggle that opens it
+             if (!(mobileHeaderToggle && mobileHeaderToggle.contains(event.target))) {
+                sidebar.classList.remove('mobile-nav-open');
+                body.classList.remove('mobile-nav-active');
+                sidebar.style.transform = 'translateX(-100%)'; // Ensure it slides out
+            }
         }
     });
 
@@ -133,41 +149,26 @@ document.addEventListener('DOMContentLoaded', function () {
     // --- URL Param Modal Logic (Login Success, etc.) ---
     function checkUrlParamsForModals() {
         const urlParams = new URLSearchParams(window.location.search);
-
-        // Function to handle showing/closing modals based on URL params
         const setupModalFromUrl = (paramName, modalId, closeBtnId) => {
              if (urlParams.has(paramName)) {
                 const modal = document.getElementById(modalId);
                 const closeBtn = document.getElementById(closeBtnId);
-
                 if (modal) {
-                    modal.style.display = 'flex'; // Show modal
-
+                    modal.style.display = 'flex';
                     const closeModal = () => {
                         modal.style.display = 'none';
-                        // Clean URL
                         urlParams.delete(paramName);
                         const newUrl = window.location.pathname + (urlParams.toString() ? '?' + urlParams.toString() : '');
                         window.history.replaceState({}, document.title, newUrl);
                     };
-
                     if (closeBtn) closeBtn.addEventListener('click', closeModal);
-                    window.addEventListener('click', (event) => {
-                         if (event.target === modal) closeModal();
-                    });
+                    window.addEventListener('click', (event) => { if (event.target === modal) closeModal(); });
                 }
             }
         };
-
-        // Setup modals based on URL parameters
         setupModalFromUrl('loginSuccess', 'login-success-modal', 'close-login-success-btn');
-        // Add other modals triggered by URL params if needed
-        // e.g., setupModalFromUrl('verificationSent', 'verification-modal', 'close-verification-btn');
-        // e.g., setupModalFromUrl('passwordResetSuccess', 'password-reset-modal', 'close-reset-btn');
-        // e.g., setupModalFromUrl('logoutSuccess', 'logout-success-modal', 'close-logout-btn');
-
+        // Add other modals if needed
     }
-
-    // Run modal checks immediately
     checkUrlParamsForModals();
 });
+
