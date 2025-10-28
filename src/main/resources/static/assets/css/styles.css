@@ -179,7 +179,7 @@ main.container, main.auth-container, .dashboard-container { flex: 1; }
 }
 
 .main-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-shrink: 0; }
-.location-display { display: flex; align-items: center; gap: 12px; }
+.location-display { display: flex; align-items: center; gap: 12px; min-width: 0; /* Allow shrinking */ }
 .location-icon { color: var(--accent); flex-shrink: 0; }
 .main-header h2 { margin: 0; font-size: 24px; font-weight: 700; color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
@@ -203,7 +203,7 @@ main.container, main.auth-container, .dashboard-container { flex: 1; }
 .mapboxgl-ctrl-geocoder--result-address { color: #3a506b !important; font-size: 13px; }
 .mapboxgl-ctrl-geocoder .mapboxgl-ctrl-geocoder--powered-by { display: none !important; }
 
-.dashboard-grid { display: grid; grid-template-columns: 1fr 380px; gap: 20px; flex-grow: 1; min-height: 0; }
+.dashboard-grid { display: grid; grid-template-columns: 1fr 380px; gap: 20px; flex-grow: 1; min-height: 0; /* Important for flex/grid children */ }
 .grid-col-main { display: flex; flex-direction: column; gap: 20px; min-height: 0; }
 .grid-col-side { display: flex; flex-direction: column; gap: 20px; min-height: 0; }
 
@@ -212,6 +212,7 @@ main.container, main.auth-container, .dashboard-container { flex: 1; }
     color: #fff; text-shadow: 0 2px 5px rgba(0,0,0,0.5);
     display: flex; flex-direction: column; justify-content: space-between;
     min-height: 280px; border: 1px solid var(--border-color);
+    flex-shrink: 0; /* Prevent shrinking when map needs space */
 }
 .weather-bg-overlay {
     position: absolute; top: 0; left: 0; right: 0; bottom: 0;
@@ -237,7 +238,10 @@ main.container, main.auth-container, .dashboard-container { flex: 1; }
 .weather-extra-details strong { font-weight: 400; color: var(--muted); font-size: 12px; }
 .weather-extra-details span { font-weight: 600; }
 
-.map-container { border-radius: 20px; overflow: hidden; flex-grow: 1; position: relative; border: 1px solid var(--border-color); }
+.map-container {
+    border-radius: 20px; overflow: hidden; flex-grow: 1; position: relative;
+    border: 1px solid var(--border-color); min-height: 300px; /* Give map a minimum height */
+}
 #map { width: 100%; height: 100%; }
 .map-style-selector { position: absolute; top: 10px; right: 10px; display: flex; gap: 5px; background: var(--bg-alt); padding: 5px; border-radius: 8px; z-index: 5; }
 .map-style-btn { background: transparent; border: 1px solid var(--muted); color: var(--muted); padding: 5px 10px; border-radius: 5px; cursor: pointer; transition: background-color 0.2s, color 0.2s; }
@@ -284,9 +288,9 @@ main.container, main.auth-container, .dashboard-container { flex: 1; }
 
 
 /* --- AUTHENTICATION PAGE STYLES --- */
-.auth-body { background: linear-gradient(45deg, #0b132b, #1c2541, #243b55); background-size: 400% 400%; animation: gradientBG 15s ease infinite; position: relative; overflow: hidden; }
+.auth-body { background: linear-gradient(45deg, #0b132b, #1c2541, #243b55); background-size: 400% 400%; animation: gradientBG 15s ease infinite; position: relative; overflow-x: hidden; /* Allow vertical scroll if needed */ }
 @keyframes gradientBG { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
-.auth-container { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; padding: 20px; z-index: 1; position: relative; }
+.auth-container { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; padding: 40px 20px; /* Add more padding top/bottom */ z-index: 1; position: relative; }
 .auth-card { background: var(--bg-alt); border: 1px solid var(--border-color); border-radius: 16px; padding: 32px 40px; width: 100%; max-width: 420px; box-shadow: var(--shadow); animation: fadeIn 0.5s ease-out; }
 @keyframes fadeIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
 .auth-header { text-align: center; margin-bottom: 24px; }
@@ -426,9 +430,10 @@ main.container, main.auth-container, .dashboard-container { flex: 1; }
 }
 
 @media (max-width: 992px) { /* Adjust sidebar behavior earlier */
-    .dashboard-container { flex-direction: column; }
-    .sidebar { width: 100%; height: auto; border-right: none; border-bottom: 1px solid var(--border-color); overflow: hidden; } /* Changed overflow-y */
-    .main-content { padding: 15px; } /* Reduce padding */
+    .dashboard-body { height: auto; overflow: auto; } /* Allow body scroll on mobile */
+    .dashboard-container { flex-direction: column; height: auto; } /* Stack container vertically */
+    .sidebar { width: 100%; height: auto; border-right: none; border-bottom: 1px solid var(--border-color); overflow: visible; /* Allow overflow for brand/nav */ flex-shrink: 0; /* Prevent shrinking */ }
+    .main-content { padding: 15px; overflow-y: visible; /* Allow content to determine height */ }
     .cards { grid-template-columns: 1fr; } /* Stack cards earlier */
     .route-form .form-row { grid-template-columns: 1fr; } /* Stack route form inputs */
     .route-form .btn { align-self: center; width: 80%; max-width: 300px; } /* Center route button */
@@ -447,9 +452,15 @@ main.container, main.auth-container, .dashboard-container { flex: 1; }
     .sidebar .sidebar-content { display: flex; flex-direction: row; align-items: center; justify-content: flex-end; width: auto; gap: 15px; } /* Horizontal layout, align right */
     .user-profile { margin-bottom: 0; width: auto; order: 3; } /* Move profile to end */
     .user-profile .user-details { display: none; } /* Hide name/logout in top bar */
-    .main-nav { flex-direction: row; gap: 5px; order: 2; } /* Nav items horizontal */
+    .main-nav { flex-direction: row; gap: 5px; order: 2; flex-wrap: wrap; /* Allow wrapping if needed */ } /* Nav items horizontal */
     .nav-item { padding: 8px 10px; }
     .nav-item span { display: none; } /* Hide text labels */
+
+    /* Ensure grid columns take full height available within main-content */
+    .dashboard-grid { display: flex; flex-direction: column; flex-grow: 1; }
+    .grid-col-main, .grid-col-side { min-height: auto; } /* Remove min-height */
+    .map-container { min-height: 40vh; /* Adjust map height for mobile */ flex-grow: 0; } /* Don't let map grow infinitely */
+    .forecast-section { height: auto; flex-grow: 1; /* Allow forecast to take remaining space */ }
 }
 
 @media (max-width: 768px) { /* Tablet and smaller phones */
@@ -472,6 +483,11 @@ main.container, main.auth-container, .dashboard-container { flex: 1; }
    .sidebar { padding: 8px 10px; }
    .nav-item { padding: 6px 8px; }
    .user-profile .user-avatar { width: 40px; height: 40px; font-size: 18px; }
+
+   /* Ensure About page cards stack */
+   .cards#about-cards { /* Use an ID if specific targeting is needed, otherwise .cards rule above is sufficient */
+       grid-template-columns: 1fr;
+   }
 }
 
 
@@ -502,7 +518,7 @@ main.container, main.auth-container, .dashboard-container { flex: 1; }
     .advisory-header h1 { font-size: 1.8em; margin-bottom: 15px; }
     .advisory-header p { font-size: 0.9em; }
     .signal-table th, .signal-table td { font-size: 12px; }
-    .route-form-section { padding: 15px; }
+    .route-form-section { padding: 15px; padding-bottom: 70px; /* Add padding below the form */}
     .route-form .btn { width: 100%; }
 
     /* Final adjustments for top bar on smallest screens */
@@ -512,4 +528,7 @@ main.container, main.auth-container, .dashboard-container { flex: 1; }
     .user-profile .user-avatar { width: 35px; height: 35px; font-size: 16px; }
     .nav-item svg { width: 20px; height: 20px; } /* Slightly smaller icons */
     .nav-item { padding: 5px; } /* Minimal padding */
+
+    .map-container { min-height: 50vh; /* Increase map height slightly on smallest screens */ }
 }
+
