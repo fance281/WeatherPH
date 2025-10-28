@@ -8,16 +8,34 @@
     <script src="https://api.mapbox.com/mapbox-gl-js/v2.8.1/mapbox-gl.js"></script>
     <script src="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v5.0.0/mapbox-gl-geocoder.min.js"></script>
     <link rel="stylesheet" href="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v5.0.0/mapbox-gl-geocoder.css" type="text/css" />
-    
+
     <link th:href="@{/assets/css/styles.css}" rel="stylesheet" />
 </head>
 <body class="dashboard-body">
 
 <div class="dashboard-container">
+    <!-- Sidebar Fragment -->
     <div th:replace="~{fragments/sidebar :: sidebar}"></div>
 
+    <!-- Mobile Header (Only visible on mobile) -->
+    <header class="mobile-header">
+         <!-- Brand Logo and Name -->
+        <div class="brand-info">
+            <span class="logo">☁️</span>
+            <span class="brand-name">WeatherPH</span>
+        </div>
+        <!-- Mobile Nav Toggle (Hamburger) -->
+        <button id="mobileNavToggle" class="sidebar-toggle mobile-toggle" title="Toggle Navigation">
+            <!-- Hamburger Icon -->
+            <svg class="icon-open" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+             <!-- X (Close) Icon -->
+            <svg class="icon-collapsed" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+        </button>
+    </header>
+
     <main class="main-content">
-        <div class="main-header">
+        <!-- Header now within main content for better flow control -->
+        <div class="main-content-header">
             <div class="location-display">
                 <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="location-icon"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
                 <h2 id="location-name">Loading location...</h2>
@@ -27,7 +45,7 @@
                 <div id="geocoder" class="geocoder"></div>
             </div>
         </div>
-        
+
         <div class="dashboard-grid">
             <div class="grid-col-main">
                 <div class="current-weather-details" id="current-weather-card">
@@ -68,8 +86,10 @@
     </main>
 </div>
 
+<!-- Logout Modal Fragment -->
 <div th:replace="~{fragments/sidebar :: logout-modal}"></div>
 
+<!-- Login Success Modal -->
 <div id="login-success-modal" class="modal-overlay">
     <div class="modal-content" style="max-width: 400px;">
         <div class="modal-header" style="text-align: center; border-bottom: none;">
@@ -87,13 +107,14 @@
     </div>
 </div>
 
+<!-- Inline script to pass Mapbox token -->
 <script th:inline="javascript">
     /* Store the Mapbox API key from the model into a JavaScript variable */
     const MAPBOX_TOKEN = /*[[${mapboxApiKey}]]*/ 'DEFAULT_FALLBACK_TOKEN';
 </script>
+<!-- External JS files -->
 <script th:src="@{/assets/js/app.js}"></script>
 <script th:src="@{/assets/js/dashboard.js}"></script>
 
 </body>
 </html>
-
