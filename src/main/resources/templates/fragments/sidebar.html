@@ -16,14 +16,14 @@ Fragment Definition: sidebar
             <span class="logo">☁️</span>
             <span class="brand-name">WeatherPH</span>
         </div>
-        <!-- Desktop Sidebar Toggle -->
+        <!-- Desktop Sidebar Toggle (Hidden on mobile) -->
         <button id="sidebarToggle" class="sidebar-toggle desktop-toggle" title="Toggle Sidebar">
             <svg class="icon-open" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
             <svg class="icon-collapsed" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
         </button>
-        <!-- Mobile Nav Toggle (Hamburger) -->
+        <!-- Mobile Nav Toggle (Hamburger/X, shown only on mobile) -->
         <button id="mobileNavToggle" class="sidebar-toggle mobile-toggle" title="Toggle Navigation">
-            <svg class="icon-open" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+            <svg class="icon-open" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg> <!-- Hamburger -->
             <svg class="icon-collapsed" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg> <!-- X icon -->
         </button>
     </div>
@@ -37,6 +37,7 @@ Fragment Definition: sidebar
                 <div class="user-details">
                     <span class="user-name" th:text="${userFullName}">User Name</span>
                     <form id="logout-form" th:action="@{/logout}" method="post" style="display: none;"></form>
+                    <!-- Make sure this button exists for the JS -->
                     <button type="button" class="logout-btn-sidebar" id="logout-button">Logout</button>
                 </div>
             </div>
@@ -58,6 +59,11 @@ Fragment Definition: sidebar
                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
                    <span>About</span>
                 </a>
+                <!-- Mobile Only Logout Button (duplicates sidebar one but easier to manage visibility) -->
+                <button type="button" class="nav-item logout-btn-mobile" id="logout-button-mobile">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+                    <span>Logout</span>
+                </button>
             </nav>
         </div>
 
@@ -78,7 +84,7 @@ Fragment Definition: sidebar
 
 </aside>
 
-<!-- Logout Confirmation Modal (No changes needed here) -->
+<!-- Logout Confirmation Modal (No changes) -->
 <div id="logout-modal" class="modal-overlay" th:fragment="logout-modal">
     <div class="modal-content" style="max-width: 400px;">
         <div class="modal-header">
@@ -97,3 +103,4 @@ Fragment Definition: sidebar
 
 </body>
 </html>
+
